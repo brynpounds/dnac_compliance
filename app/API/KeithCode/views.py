@@ -1234,7 +1234,17 @@ class get_floor_idController(MethodResource, Resource):
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
     
         floor_id = None
-        building_id = get_building_id(building_name, dnac_jwt_token)
+        #building_id = get_building_id(building_name, dnac_jwt_token)
+        building_id = None
+        url = DNAC_URL + '/api/v1/group?groupType=SITE'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        building_response = requests.get(url, headers=header, verify=False)
+        building_json = building_response.json()
+        building_list = building_json['response']
+        for building in building_list:
+            if building_name == building['name']:
+                building_id = building['id']
+                
         url = DNAC_URL + '/api/v1/group/' + building_id + '/child?level=1'
         header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
         building_response = requests.get(url, headers=header, verify=False)
@@ -1731,7 +1741,17 @@ class get_output_command_runnerController(MethodResource, Resource):
     
     
         # get the DNA C device id
-        device_id = get_device_id_name(device_name, dnac_jwt_token)
+        ####device_id = get_device_id_name(device_name, dnac_jwt_token)
+        device_id = None
+        #device_list = get_all_device_info(dnac_jwt_token)
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()
+        
+        for device in device_list['response']:
+            if device['hostname'] == device_name:
+                device_id = device['id']        
     
         # get the DNA C task id that will process the CLI command runner
         payload = {
@@ -1817,7 +1837,18 @@ class get_device_configController(MethodResource, Resource):
         device_name = kwargs.get("device_name", "10001")
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
     
-        device_id = get_device_id_name(device_name, dnac_jwt_token)
+        #device_id = get_device_id_name(device_name, dnac_jwt_token)
+        device_id = None
+        #device_list = get_all_device_info(dnac_jwt_token)
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()
+        
+        for device in device_list['response']:
+            if device['hostname'] == device_name:
+                device_id = device['id']
+                    
         url = DNAC_URL + '/api/v1/network-device/' + device_id + '/config'
         header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
         response = requests.get(url, headers=header, verify=False)
