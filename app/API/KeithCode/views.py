@@ -128,14 +128,6 @@ class get_device_infoController(MethodResource, Resource):
         device_response = requests.get(url, headers=header, verify=False)
         device_info = device_response.json()
         return device_info['response'][0]
-
-
-    
-        url = DNAC_URL + '/api/v1/network-device?id=' + device_id
-        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
-        device_response = requests.get(url, headers=header, verify=False)
-        device_info = device_response.json()
-        return device_info['response'][0]
     
 class delete_deviceControllerSchema(Schema):
     device_id = fields.String(required=True, description="device_id is required ", example="00000")
@@ -793,8 +785,13 @@ class get_device_id_nameController(MethodResource, Resource):
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
     
         device_id = None
-        device_list = get_all_device_info(dnac_jwt_token)
-        for device in device_list:
+        #device_list = get_all_device_info(dnac_jwt_token)
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()
+        
+        for device in device_list['response']:
             if device['hostname'] == device_name:
                 device_id = device['id']
         return device_id
@@ -824,18 +821,30 @@ class get_device_statusController(MethodResource, Resource):
         DNAC_AUTH = HTTPBasicAuth(DNAC_USER, DNAC_PASS)
         device_name = kwargs.get("device_name", "10001")
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
-    
-        device_id = get_device_id_name(device_name, dnac_jwt_token)
+        
+        #device_id = get_device_id_name(device_name, dnac_jwt_token)
+        device_id = None
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'dnac_jwt_tokenapplication/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()
+        
+        for device in device_list['response']:
+            if device['hostname'] == device_name:
+                device_id = device['id']        
+        
         if device_id is None:
             return 'UNKNOWN'
         else:
-            device_info = get_device_info(device_id, dnac_jwt_token)
-            if device_info['reachabilityStatus'] == 'Reachable':
+            url = DNAC_URL + '/api/v1/network-device?id=' + device_id
+            header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+            device_response = requests.get(url, headers=header, verify=False)
+            device_info = device_response.json()
+            #return device_info['response'][0]['reachabilityStatus']
+            if device_info['response'][0]['reachabilityStatus'] == 'Reachable':
                 return 'SUCCESS'
             else:
-                return 'FAILURE'
-    
-    
+                return 'FAILURE'            
     
 
 class get_device_management_ipControllerSchema(Schema):
@@ -862,8 +871,13 @@ class get_device_management_ipController(MethodResource, Resource):
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
     
         device_ip = None
-        device_list = get_all_device_info(dnac_jwt_token)
-        for device in device_list:
+        #device_list = get_all_device_info(dnac_jwt_token)
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()        
+        
+        for device in device_list['response']:
             if device['hostname'] == device_name:
                 device_ip = device['managementIpAddress']
         return device_ip
@@ -927,7 +941,16 @@ class get_device_locationController(MethodResource, Resource):
         device_name = kwargs.get("device_name", "10001")
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
     
-        device_id = get_device_id_name(device_name, dnac_jwt_token)
+        #device_id = get_device_id_name(device_name, dnac_jwt_token)
+        device_id = ""
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()
+        for device in device_list['response']:
+            if device['hostname'] == device_name:
+                device_id = device['id']        
+
         url = DNAC_URL + '/api/v1/group/member/' + device_id + '?groupType=SITE'
         header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
         device_response = requests.get(url, headers=header, verify=False)
@@ -1567,7 +1590,11 @@ class check_ipv4_network_interfaceController(MethodResource, Resource):
             response_info = response_json['response'][0]
             interface_name = response_info['portName']
             device_id = response_info['deviceId']
-            device_info = get_device_info(device_id, dnac_jwt_token)
+            #device_info = get_device_info(device_id, dnac_jwt_token)
+            url = DNAC_URL + '/api/v1/network-device?id=' + device_id
+            header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+            device_response = requests.get(url, headers=header, verify=False)
+            device_info = device_response.json()            
             device_hostname = device_info['hostname']
             return device_hostname, interface_name
         except:
@@ -1968,7 +1995,17 @@ class get_device_healthController(MethodResource, Resource):
         epoch_time = kwargs.get("epoch_time", "10001")
         dnac_jwt_token = kwargs.get("dnac_jwt_token", "10001")
     
-        device_id = get_device_id_name(device_name, dnac_jwt_token)
+        #device_id = get_device_id_name(device_name, dnac_jwt_token)
+        device_id = ""
+        url = DNAC_URL + '/api/v1/network-device'
+        header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
+        all_device_response = requests.get(url, headers=header, verify=False)
+        device_list = all_device_response.json()
+                
+        for device in device_list['response']:
+            if device['hostname'] == device_name:
+                device_id = device['id']
+        
         url = DNAC_URL + '/dna/intent/api/v1/device-detail?timestamp=' + str(epoch_time) + '&searchBy=' + device_id
         url += '&identifier=uuid'
         header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
