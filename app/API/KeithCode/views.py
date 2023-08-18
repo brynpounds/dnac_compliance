@@ -122,8 +122,6 @@ class delete_deviceController(MethodResource, Resource):
         delete_status = delete_response['response']
         return delete_status    
     
-    
-    """testing"""
 class get_project_idControllerSchema(Schema):
     project_name = fields.String(required=True, description="project_name is required ", example="00000")
     dnac_jwt_token = fields.String(required=True, description="dnac_jwt_token is required ", example="00000")
