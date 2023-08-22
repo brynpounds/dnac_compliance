@@ -13,7 +13,7 @@
     {% for item in reports.split("\n") %}
       {% for thing in item.split(" ") %}
         {% if ".pdf" in thing %}
-          <a href="/static/{% print(thing) %} ">{% print(thing) %}</a></br>
+          <a href="/static/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
         {% endif %}
       {% endfor %}
     {% endfor %}
