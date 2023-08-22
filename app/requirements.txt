@@ -10,3 +10,7 @@ ncclient==0.6.13
 urllib3==1.26.14
 xmltodict==0.13.0
 utils
+pytz>=2015.7
+fpdf
+
+
