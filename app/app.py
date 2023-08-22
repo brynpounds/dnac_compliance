@@ -1,6 +1,12 @@
+from flask import Flask, render_template, send_from_directory, request, url_for, flash, redirect
 import json
 import requests
+import time
+import subprocess
+from subprocess import PIPE
 from dotenv import load_dotenv
+from config import DNAC_URL, DNAC_PASS, DNAC_USER
+from compliance_mon import *
 load_dotenv()
 
 try:
@@ -69,6 +75,234 @@ try:
                      )
 except Exception as e:
     print("Modules are Missing : {} ".format(e))
+    
+messages=["howdy"]
+    
+@app.route("/")
+def home():
+    my_var = "Howdy"
+    result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports", "/dev/null"], stdout=PIPE, stderr=PIPE)
+    contents = result.stdout.decode('utf8')
+    return render_template("home.html", message = contents.split("total")[1])
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/configure_system", methods=('GET', 'POST'))
+def configure_system():
+    if request.method == 'POST':
+        ip_address = request.form['ip_address']
+        username = request.form['username']
+        password = request.form['password']
+        file1 = open('/app/config.py', 'w')
+        #file1.writelines("\nNew DNAC URL: " + ip_address + "\nNew Username :" + username + "\nNew Password: " + password)
+        file1.write('''####################################################################################
+# project: DNAC-ComplianceMon
+# module: config.py
+# author: kebaldwi@cisco.com
+# use case: Simple Check of XML audit files against configuration
+# developers:
+#            Gabi Zapodeanu, TME, Enterprise Networks, Cisco Systems
+#            Keith Baldwin, TSA, EN Architectures, Cisco Systems
+#            Bryn Pounds, PSA, WW Architectures, Cisco Systems
+####################################################################################
+
+import socket
+
+# This file contains the:
+# DNAC username and password, server info and file locations
+
+# Update this section with the DNA Center server info and user information
+DNAC_IP = "''' + ip_address + '''"
+DNAC_USER = "''' + username + '''"
+DNAC_PASS = "''' + password + '''"
+DNAC_URL = 'https://' + DNAC_IP
+DNAC_FQDN = socket.getfqdn(DNAC_IP)
+
+# Update this section for Email Notification
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+# Enter your address
+SMTP_EMAIL = "sender@gmail.com"
+SMTP_PASS = "16-digit-app-password"
+# Enter receiver address
+NOTIFICATION_EMAIL = "receiver@gmail.com"
+
+# Update this section for the Time Zone
+TIME_ZONE = 'US/Eastern'
+
+# File location to be used for configurations
+CONFIG_PATH = f"./"
+CONFIG_STORE = f"DNAC-CompMon-Data/Configs/"
+JSON_STORE = f"DNAC-CompMon-Data/JSONdata/"
+REPORT_STORE = f"API/static/"
+COMPLIANCE_STORE = f"PrimeComplianceChecks/"''')
+        file1.close()
+        
+        if not ip_address:
+            flash('IP Address is required!')
+        elif not username:
+            flash('Username is required!')        
+        elif not password:
+            flash('Password is required!')
+        else:
+            messages.append({'ip_address': ip_address, 'username': username, 'password':password})
+            return redirect(url_for('status'))    
+    return render_template("configure_system.html", messages=messages, DNAC_URL=DNAC_URL)
+
+@app.route("/report", methods=('GET', 'POST'))
+def serve_report():
+    if request.method == 'POST':
+        message = "Reports..."
+        file_copy = subprocess.run(["mv", "/app/DNAC-CompMon-Data/Reports/*.pdf", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
+        result = subprocess.run(["ls", "-l", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
+        contents = result.stdout.decode('utf8')    
+        
+        time.sleep(2)
+        os_setup()
+        AUDIT_DATABASE = {}
+        COMPLIANCE_DIRECTORY = "IOSXE"
+        COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY)
+        AUDIT_DATABASE = all_files_into_dict(COMP_CHECKS)
+        Config_Files, Report_Files, Json_Files = data_library(CONFIG_PATH,CONFIG_STORE,REPORT_STORE,JSON_STORE)
+        os.chdir(Config_Files)
+    
+        temp_run_config = "temp_run_config.txt"
+        
+        # logging, debug level, to file {application_run.log}
+        logging.basicConfig(
+            filename='application_run.log',
+            level=logging.DEBUG,
+            format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+        dnac_token = dnac_apis.get_dnac_jwt_token(DNAC_AUTH)
+        
+        # get the DNA C managed devices list (excluded wireless, for one location)
+        all_devices_info = dnac_apis.get_all_device_info(dnac_token)
+        all_devices_hostnames = []
+        for device in all_devices_info:
+            if device['family'] == 'Switches and Hubs' or device['family'] == 'Routers':
+                all_devices_hostnames.append(device['hostname'])
+            
+        # Get the current date time in UTC timezone
+        now_utc = datetime.datetime.now(pytz.UTC)
+        # Convert to timezone
+        time_zone = 'US/Eastern'
+        tz = pytz.timezone(time_zone)
+        now_tz = now_utc.astimezone(tz)
+        # Format the date and time string
+        date_str = now_tz.strftime('%m/%d/%Y').replace('/', '_')
+        time_str = now_tz.strftime('%H:%M:%S').replace(':', '_')
+        
+        # get the config files, compare with existing (if one existing). Save new config if file not existing.
+        for device in all_devices_hostnames:
+            device_run_config = dnac_apis.get_device_config(device, dnac_token)
+            filename = str(device) + '_' + date_str + '_run_config.txt'
+            
+            # save the running config to a temp file
+            f_temp = open(temp_run_config, 'w')
+            f_temp.write(device_run_config)
+            f_temp.seek(0)  # reset the file pointer to 0
+            f_temp.close()
+            
+            # check for existing configuration file
+            # if yes; run the check for changes; diff function
+            # if not; save; run the diff function
+            # expected result create local config "database"
+            
+            if os.path.isfile(filename):
+                diff = compare_configs(filename, temp_run_config)
+                
+                if diff != '':
+                    # retrieve the device location using DNA C REST APIs
+                    location = dnac_apis.get_device_location(device, dnac_token)
+                    # find the users that made configuration changes
+                    with open(temp_run_config, 'r') as f:
+                        user_info = 'User info no available'
+                        for line in f:
+                            if 'Last configuration change' in line:
+                                user_info = line
+                    
+                    # define the incident description and comment
+                    short_description = 'Configuration Change Alert - ' + device
+                    comment = 'The device with the name: ' + device + '\nhas detected a Configuration Change'
+                                        
+                    # get the device health from DNA Center
+                    current_time_epoch = utils.get_epoch_current_time()
+                    device_details = dnac_apis.get_device_health(device, current_time_epoch, dnac_token)
+                    
+                    device_sn = device_details['serialNumber']
+                    device_mngmnt_ip_address = device_details['managementIpAddr']
+                    device_family = device_details['platformId']
+                    device_os_info = device_details['osType'] + ',  ' + device_details['softwareVersion']
+                    device_health = device_details['overallHealth']
+                    
+                    updated_comment = '\nDevice location: ' + location
+                    updated_comment += '\nDevice family: ' + device_family
+                    updated_comment += '\nDevice OS info: ' + device_os_info
+                    updated_comment += '\nDevice S/N: ' + device_sn
+                    updated_comment += '\nDevice Health: ' + str(device_health) + '/10'
+                    updated_comment += '\nDevice management IP address: ' + device_mngmnt_ip_address
+                    updated_comment = '\nThe configuration changes are\n' + diff + '\n\n' + user_info
+                else:
+                    print('Device: ' + device + ' - No configuration changes detected')
+            else:
+                # new device discovered, save the running configuration to a file in the folder with the name
+                # {Config_Files}
+                
+                f_config = open(filename, 'w')
+                f_config.write(device_run_config)
+                f_config.seek(0)
+                f_config.close()
+                
+                # retrieve the device management IP address
+                device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
+        report = compliance_run("./", AUDIT_DATABASE, Report_Files, Json_Files)
+        
+        
+        
+        return render_template('report.html', message=message, reports=contents.split("total")[1], debug=report)
+              
+        
+    message = "Reports..."
+    file_copy = subprocess.run(["mv", "/app/DNAC-CompMon-Data/Reports/*.pdf", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
+    result = subprocess.run(["ls", "-l", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
+    contents = result.stdout.decode('utf8')    
+    return render_template('report.html', message=message, reports=contents.split("total")[1])
+
+
+@app.route("/status")
+def status():
+    file1 = open('/app/config.py', 'r')
+    contents = file1.read()
+    file1.close()
+    
+    
+    url = 'http://localhost:8080/health_check'
+    response = requests.get(url)
+    our_response_content = response.content.decode('utf8')
+    proper_json_response = json.loads(our_response_content)
+    return render_template("status.html", testing=proper_json_response, DNAC_URL=DNAC_URL, DNAC_USER=DNAC_USER, messages=messages, contents=contents)
+
+@app.route("/weather")
+def weather():
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+    }
+    
+    json_data = {
+        'city': 'Overland Park',
+        'zip': '66085',
+    }
+    
+    response = requests.post('http://localhost:8080/check_weather', headers=headers, json=json_data)    
+    #url = 'http://192.241.187.136/data/2.5/weather?zip=66085,us&appid=11a1aac6bc7d01ea13f0d2a8e78c227e'
+    #my_response = requests.get(url)
+    our_response_content = response.content.decode('utf8')
+    proper_json_response = json.loads(our_response_content)
+    return render_template("weather.html", message="HOWDY", testing=proper_json_response)
 
 api.add_resource(HeathController, '/health_check')
 docs.register(HeathController)
@@ -243,3 +477,8 @@ docs.register(pnp_get_device_infoController)
 
 api.add_resource(get_physical_topologyController, '/get_physical_topology')
 docs.register(get_physical_topologyController)
+
+
+
+if __name__ == '__main__':
+    app.run(threaded=True)

@@ -1,5 +1,5 @@
 try:
-    from flask import Flask
+    from flask import Flask, render_template
     from flask_restful import Resource, Api
     from apispec import APISpec
     from marshmallow import Schema, fields
@@ -69,11 +69,13 @@ try:
     
     import requests
     import json
+    import subprocess
     
 except Exception as e:
     print("__init Modules are Missing {}".format(e))
 
 app = Flask(__name__)  # Flask app instance initiated
+app.config['SECRET_KEY'] = 'C1sc012345'
 api = Api(app)  # Flask restful wraps Flask app around it.
 app.config.update({
     'APISPEC_SPEC': APISpec(
