@@ -8,7 +8,6 @@
   </head>
   <body>
     <h1>{{message}}</h1>
-    <p> {% print(debug) %} </p>
     <p>
     {% for item in reports.split("\n") %}
       {% for thing in item.split(" ") %}
@@ -20,6 +19,7 @@
     </p>  
     <script src="/static/serve.js" charset="utf-8"></script>
   <form method="post">
+  <p> Click submit to run a new report </p>
     <button type="submit">Submit</button>
   </form>
   </body>

@@ -1,41 +1,6 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<title>Page Title</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-/* Style the body */
-body {
-  font-family: Arial;
-  margin: 0;
-}
-
-/* Header/Logo Title */
-.header {
-  padding: 10px;
-  text-align: center;
-  background: #27AE60;
-  color: white;
-  font-size: 10px;
-  
-  /* Container/Logo Title */
-.container {
-  padding: 10px;
-  text-align: left;
-  background: #27AE60;
-  color: white;
-  font-size: 10px;
-}
-
-/* Page Content */
-.content {padding:20px;}
-</style>
-</head>
-<body>
-
-    
-    <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
@@ -43,7 +8,7 @@ body {margin:0;font-family:Arial}
 
 .topnav {
   overflow: hidden;
-  background-color: #05a356;
+  background-color: #333;
 }
 
 .topnav a {
@@ -148,7 +113,7 @@ body {margin:0;font-family:Arial}
 <body>
 
 <div class="topnav" id="myTopnav">
-  <a href="/" class="active">DNAC "Compliance Lite" Home</a>
+  <a href="/" class="active">Home</a>
   <a href="/report">Reports</a>
   <a href="/about">About</a>
   <div class="dropdown">
@@ -156,17 +121,32 @@ body {margin:0;font-family:Arial}
       <i class="fa fa-caret-down"></i>
     </button>
     <div class="dropdown-content">
-      <a href="/status">Status</a>
       <a href="/configure_system">Configure System</a>
-      <a href="/weather">Kansas City Weather Report</a>
+      <a href="#">Link 2</a>
+      <a href="#">Link 3</a>
     </div>
   </div> 
-  <a href="/swagger-ui/" target="_blank">Swagger-UI</a>
+  <a href="/swagger-ui/">Swagger-UI</a>
   <a href="javascript:void(0);" style="font-size:15px;" class="icon" onclick="myFunction()">&#9776;</a>
 </div>
 
-    {% block content %}
-    {% endblock %}
-    
- </body>
+<div style="padding-left:16px">
+  <h2>Responsive Topnav with Dropdown</h2>
+  <p>Resize the browser window to see how it works.</p>
+  <p>Hover over the dropdown button to open the dropdown menu.</p>
+</div>
+
+<script>
+function myFunction() {
+  var x = document.getElementById("myTopnav");
+  if (x.className === "topnav") {
+    x.className += " responsive";
+  } else {
+    x.className = "topnav";
+  }
+}
+</script>
+
+</body>
+
 </html>
