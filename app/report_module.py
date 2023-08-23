@@ -77,7 +77,7 @@ def pdf_converter(DATA, DIRECTORY):
     date_str = now_tz.strftime('%m/%d/%Y').replace('/', '_')
     time_str = now_tz.strftime('%H:%M:%S').replace(':', '_')
     # Define the filename for the PDF file
-    FILENAME = "DNAC-COMPLIANCE-REPORT-" + date_str + ".pdf"
+    FILENAME = "DNAC-COMPLIANCE-REPORT-" + date_str + "_" + time_str +".pdf"
     report = DIRECTORY + FILENAME
     # Save the PDF file
     pdf.output(DIRECTORY + FILENAME)
