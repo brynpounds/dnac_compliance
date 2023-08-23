@@ -259,9 +259,7 @@ def serve_report():
                 # retrieve the device management IP address
                 device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
         report = compliance_run("./", AUDIT_DATABASE, Report_Files, Json_Files)
-        
-        
-        
+        time.sleep(2)
         return render_template('report.html', message=message, reports=contents.split("total")[1], debug=report)
               
         
@@ -271,6 +269,9 @@ def serve_report():
     contents = result.stdout.decode('utf8')    
     return render_template('report.html', message=message, reports=contents.split("total")[1])
 
+@app.route("/test")
+def test():
+    return render_template("test.html")
 
 @app.route("/status")
 def status():
