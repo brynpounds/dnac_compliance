@@ -28,6 +28,7 @@ import urllib3
 import logging
 import json
 import warnings
+import re
 
 import utils
 import dnac_apis
@@ -39,7 +40,7 @@ from service_email import system_notification
 from requests.auth import HTTPBasicAuth  # for Basic Auth
 from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
 
-from config import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE
+from API.config.config import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG
 
 urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warnings
 
@@ -135,6 +136,28 @@ def compare_configs(cfg1, cfg2):
 
     return config_text
 
+def read_recent(DIRECTORY,filename):
+    # Extract hostname from filename
+    hostname = filename.split('_')[0]
+    
+    #Define filename pattern
+    file_pattern = re.compile(f'{hostname}.*_run_config.txt')
+    
+    # get a list of all files in the directory that match the pattern
+    files = [file for file in os.listdir(DIRECTORY) if file_pattern.search(file)]
+    
+    # Sort the files by modification time (most recent first)
+    files.sort(key=os.path.getmtime, reverse=True)
+    
+    # read the most recent file
+    if files:
+        file = files[0]
+        print(file)
+        #file = os.path.join(DIRECTORY, files[0])
+    else:
+        file = ''
+    return file
+
 def main():
     os_setup()
     
@@ -144,7 +167,7 @@ def main():
         
     AUDIT_DATABASE = all_files_into_dict(COMP_CHECKS)
     print(f"First the Audit Rules from Prime loaded for processing against configs\n\n",AUDIT_DATABASE)
-    pause()   
+    #pause()   
     
     Config_Files, Report_Files, Json_Files = data_library(CONFIG_PATH,CONFIG_STORE,REPORT_STORE,JSON_STORE)
     os.chdir(Config_Files)
@@ -164,7 +187,7 @@ def main():
     print("\n\nThis is the Token we will use for Authentication:")
     dnac_token = dnac_apis.get_dnac_jwt_token(DNAC_AUTH)
     print('\nDNA Center AUTH Token: \n', dnac_token, '\n')
-    pause()   
+    #pause()   
     
     # get the DNA C managed devices list (excluded wireless, for one location)
     all_devices_info = dnac_apis.get_all_device_info(dnac_token)
@@ -199,8 +222,12 @@ def main():
         # if not; save; run the diff function
         # expected result create local config "database"
         
-        if os.path.isfile(filename):
-            diff = compare_configs(filename, temp_run_config)
+        # first get most recent config if exists
+        DIRECTORY = '/app/'
+        recent_filename = read_recent(DIRECTORY,filename)
+
+        if os.path.isfile(recent_filename):
+            diff = compare_configs(recent_filename, temp_run_config)
             
             if diff != '':
                 # retrieve the device location using DNA C REST APIs
@@ -240,14 +267,37 @@ def main():
                 updated_comment = '\nThe configuration changes are\n' + diff + '\n\n' + user_info
                 
                 print(updated_comment)
+
+                # new version discovered, save the running configuration to a file in the folder with the name
+                f_config = open(filename, 'w')
+                f_config.write(device_run_config)
+                f_config.seek(0)
+                f_config.close()
+                
+                # retrieve the device management IP address
+                device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
+                
+                print('Device: ' + device + ' - New config version stored\n\n')
                 
             else:
                 print('Device: ' + device + ' - No configuration changes detected')
-                
+
+                if filename != recent_filename:
+                    # version saved, save the running configuration to a file in the folder with the name
+                    f_config = open(filename, 'w')
+                    f_config.write(device_run_config)
+                    f_config.seek(0)
+                    f_config.close()
+                    
+                    # retrieve the device management IP address
+                    device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
+                    
+                    print('Device: ' + device + ' - config stored\n\n')
+                else:
+                    print('Device: ' + device + ' - config the same - skipping\n\n')
         else:
             # new device discovered, save the running configuration to a file in the folder with the name
             # {Config_Files}
-            
             f_config = open(filename, 'w')
             f_config.write(device_run_config)
             f_config.seek(0)
@@ -258,9 +308,13 @@ def main():
             
             print('Device: ' + device + ' - New device discovered\n\n')
     
-    pause()
+    #pause()
     report = compliance_run("./", AUDIT_DATABASE, Report_Files, Json_Files)
-#    system_notification(report)
+    
+    if SMTP_FLAG == True:
+        system_notification(report)
+    else:
+        print('\n\nUnable to send Notification Email - as SMTP settings are not set.')
     
     #print('Wait for 10 seconds and start again')
     #time.sleep(10)
