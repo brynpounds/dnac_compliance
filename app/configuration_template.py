@@ -1,6 +1,6 @@
 ####################################################################################
 # project: DNAC-ComplianceMon
-# module: config.py
+# module: configuration_template.py
 # author: kebaldwi@cisco.com
 # use case: Simple Check of XML audit files against configuration
 # developers:

@@ -25,7 +25,7 @@ import re
 import datetime
 import time
 import pytz
-from config import DNAC_IP, DNAC_FQDN
+from configuration_template import DNAC_IP, DNAC_FQDN
 from report_module import pdf_converter, json_export
 from showrunsection import show_run_section, show_run_section_array, show_run_headers
 

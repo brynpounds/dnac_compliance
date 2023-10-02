@@ -27,7 +27,7 @@ import getpass
 import zipfile
 import pytz
 from service_scheduler import *
-from config import TIME_ZONE, CONFIG_PATH, COMPLIANCE_STORE
+from configuration_template import TIME_ZONE, CONFIG_PATH, COMPLIANCE_STORE
 
 #     ----------------------------- DEFINITIONS -----------------------------
 

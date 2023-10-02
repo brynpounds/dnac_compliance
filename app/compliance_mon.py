@@ -37,7 +37,7 @@ from service_email import system_notification
 from requests.auth import HTTPBasicAuth  # for Basic Auth
 from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
 
-from config import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG
+from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG
 
 urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warnings
 
