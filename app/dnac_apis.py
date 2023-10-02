@@ -22,7 +22,7 @@ import utils
 from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
 from requests.auth import HTTPBasicAuth  # for Basic Auth
 
-from config import DNAC_URL, DNAC_PASS, DNAC_USER
+from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER
 
 urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warnings
 

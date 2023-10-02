@@ -21,7 +21,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import ssl
-from config import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASS, NOTIFICATION_EMAIL, TIME_ZONE
+from configuration_template import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASS, NOTIFICATION_EMAIL, TIME_ZONE
 
 #     ----------------------------- DEFINITIONS -----------------------------
 

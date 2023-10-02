@@ -21,7 +21,7 @@ import os.path
 import xml.etree.ElementTree as ET
 import xmltodict
 
-from config import CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE
+from configuration_template import CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE
 
 AUDIT_DATABASE = {}
 COMPLIANCE_DIRECTORY = "IOSXE"

@@ -1,7 +1,7 @@
 # DNA Center Compliance Monitor
-Using Cisco DNA Center for Configuration Monitoring and Compliance and sending notifications as incidents to ServiceNow
+Using Cisco DNA Center for Configuration Monitoring and Compliance and sending notifications as incidents to ServiceNow or via email.
 
-This repo will use xml formatted compliance rules from Cisco DNA Center to how to detect and mitigate unauthorized, or non-compliant configuration changes and notify ServiceNow or via Email.
+This repo will use xml formatted compliance rules from Cisco DNA Center to detect and mitigate unauthorized, or non-compliant configuration changes and notify ServiceNow or via Email.
 
 This repo is based on ConfigMon-DNAC by Gabi Z
 
