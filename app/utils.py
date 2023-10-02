@@ -38,9 +38,7 @@ def pprint(json_data):
     :param json_data:
     :return:
     """
-
     print(json.dumps(json_data, indent=4, separators=(' , ', ' : ')))
-
 
 def get_input_ip():
     """
@@ -48,10 +46,8 @@ def get_input_ip():
     The function will return the IP address
     :return: the IP address
     """
-
     ip_address = input('Input the IP address to be validated, (or q to exit) ?  ')
     return ip_address
-
 
 def get_input_mac():
     """
@@ -59,10 +55,8 @@ def get_input_mac():
     The function will return the IP address
     :return: the IP address
     """
-
     mac_address = input('Input the MAC address to be validated, (or q to exit) ?  ')
     return mac_address
-
 
 def get_input_timeout(message, wait_time):
     """
@@ -71,7 +65,6 @@ def get_input_timeout(message, wait_time):
     :param wait_time: time limit for the user input
     :return: user input as string
     """
-
     print(message + ' in ' + str(wait_time) + ' seconds')
     i, o, e = select.select([sys.stdin], [], [], wait_time)
     if i:
@@ -81,7 +74,6 @@ def get_input_timeout(message, wait_time):
         input_value = None
         print('No user input in ', wait_time, ' seconds')
     return input_value
-
 
 def validate_ipv4_address(ipv4_address):
     """
@@ -94,7 +86,6 @@ def validate_ipv4_address(ipv4_address):
         return True
     except:
         return False
-
 
 def identify_ipv4_address(configuration):
     """
@@ -121,7 +112,6 @@ def identify_ipv4_address(configuration):
                         ipv4_list.append(word)
     return ipv4_list
 
-
 def ping_return(hostname):
     """
     Use the ping utility to attempt to reach the host. We send 5 packets
@@ -138,7 +128,6 @@ def ping_return(hostname):
     else:
         return_code = 'Unknown'
     return return_code
-
 
 def get_epoch_current_time():
     """

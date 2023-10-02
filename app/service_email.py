@@ -15,7 +15,6 @@
 
 #     ------------------------------- IMPORTS -------------------------------
 import datetime
-import time
 import pytz
 import smtplib
 from email.mime.text import MIMEText
@@ -30,22 +29,18 @@ from config import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASS, NOTIFICATION_E
 def system_notification(ATTACHMENT):
     # Get Date and Time
     DATE, TIME = date_time(TIME_ZONE)
-
     # Compose the email message
     msg = MIMEMultipart()
     msg['From'] = SMTP_EMAIL
     msg['To'] = NOTIFICATION_EMAIL
     msg['Subject'] = 'DNA Center Compliance Report - ' + DATE + '.' 
-    
     body = 'This is the report produced at ' + DATE + ' and ' + TIME + '.'
-    msg.attach(MIMEText(body, 'plain'))
-    
+    msg.attach(MIMEText(body, 'plain'))  
     # Attach the file
     with open(ATTACHMENT, 'rb') as f:
         attachment = MIMEApplication(f.read(), _subtype='pdf')
         attachment.add_header('Content-Disposition', 'attachment', filename=ATTACHMENT)
         msg.attach(attachment)
-
     context = ssl.create_default_context()
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
         server.starttls(context=context)
@@ -55,8 +50,7 @@ def system_notification(ATTACHMENT):
 
 def system_message(MESSAGE):
     # Get Date and Time
-    DATE, TIME = date_time(TIME_ZONE)
-    
+    DATE, TIME = date_time(TIME_ZONE)   
     # This is the main function for testing purposes
     subject = 'DNA Center Compliance System Message - ' + DATE + '.'
     body = MESSAGE
@@ -76,26 +70,24 @@ def date_time(TIME_ZONE):
         time_zone = 'US/Eastern'
     else:
         time_zone = TIME_ZONE
-    tz = pytz.timezone(time_zone)
-    
+    tz = pytz.timezone(time_zone)    
     # Check if the timezone is currently observing daylight savings time
-    is_dst = bool(tz.localize(datetime.datetime.now()).dst())
-    
+    is_dst = bool(tz.localize(datetime.datetime.now()).dst())   
     # Convert to the specified timezone while accounting for daylight savings time
     if is_dst:
         now_tz = datetime.datetime.now(tz)
     else:
-        now_tz = tz.normalize(now_utc.astimezone(tz))
-    
+        now_tz = tz.normalize(now_utc.astimezone(tz))    
     # Format the date and time string
     date_str = now_tz.strftime('%m/%d/%Y')
-    time_str = now_tz.strftime('%H:%M:%S')
-    
+    time_str = now_tz.strftime('%H:%M:%S')    
     if is_dst:
         time_str += ' (DST)'
     return date_str, time_str
 
 #     ----------------------------- MAIN -----------------------------
+# For testing and development purposes uncomment the code below
+
 """
 message = 'this is a keith test from the system'
 system_message(message)

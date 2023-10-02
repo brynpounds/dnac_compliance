@@ -16,11 +16,7 @@
 
 #     ------------------------------- IMPORTS -------------------------------
 
-import os
-import sys
-import os.path
 import datetime
-import time
 import pytz
 from fpdf import FPDF
 import json
@@ -77,7 +73,7 @@ def pdf_converter(DATA, DIRECTORY):
     date_str = now_tz.strftime('%m/%d/%Y').replace('/', '_')
     time_str = now_tz.strftime('%H:%M:%S').replace(':', '_')
     # Define the filename for the PDF file
-    FILENAME = "DNAC-COMPLIANCE-REPORT-" + date_str + "_" + time_str + ".pdf"
+    FILENAME = "DNAC-COMPLIANCE-REPORT-" + date_str + ".pdf"
     report = DIRECTORY + FILENAME
     # Save the PDF file
     pdf.output(DIRECTORY + FILENAME)
@@ -142,8 +138,8 @@ def json_export(ARRAY, DIRECTORY):
     return 
 
 #     ----------------------------- MAIN -----------------------------
+# For testing and development purposes uncomment the code below
 
-# For testing purposes below
 """
 text = " \
 \n\n ##################################################################################################\n \

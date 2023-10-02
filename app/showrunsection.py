@@ -17,7 +17,6 @@
 #     ------------------------------- IMPORTS -------------------------------
 
 import re
-import sys
 
 #     ----------------------------- DEFINITIONS -----------------------------
 
@@ -90,7 +89,7 @@ def show_run_headers(lines, pattern):
     return matching_lines    
 
 #     ----------------------------- MAIN -----------------------------
-# For testing purposes use the following but comment out and include the same 
+# For testing and development purposes uncomment the code below
 # calls in the body of the main program
 
 """

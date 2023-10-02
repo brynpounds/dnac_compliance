@@ -7,6 +7,8 @@
 # use case: Simple Check of XML audit files against configuration
 # developers:
 #            Gabi Zapodeanu, TME, Enterprise Networks, Cisco Systems
+#            Keith Baldwin, TSA, EN Architectures, Cisco Systems
+#            Bryn Pounds, PSA, WW Architectures, Cisco Systems
 ####################################################################################
 
 # This file contains the ServiceNow functions to be used during the demo
@@ -15,18 +17,16 @@
 
 import requests
 import json
-import utils
+import urllib3
 
 from config import SNOW_ADMIN, SNOW_PASS, SNOW_URL
+from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
 
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
-
+urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warnings
 
 # users roles :
 # SNOW_ADMIN = Application Admin
 # SNOW_DEV = Device REST API Calls
-
 
 def get_last_incidents_list(incident_count):
     """
@@ -44,7 +44,6 @@ def get_last_incidents_list(incident_count):
         incident_list.append(incident['number'])
     return incident_list
 
-
 def get_last_incidents_info(incident_count):
     """
     This function will return the info for the last {incident_count} number of incidents
@@ -58,7 +57,6 @@ def get_last_incidents_info(incident_count):
     incident_info = incident_json['result']
     return incident_info
 
-
 def get_incident_detail(incident):
     """
     This function will return the incident information for the incident with the number {incident}
@@ -71,7 +69,6 @@ def get_incident_detail(incident):
     response = requests.get(url, auth=(SNOW_ADMIN, SNOW_PASS), headers=headers)
     incident_json = response.json()
     return incident_json['result']
-
 
 def create_incident(description, comment, username, severity):
     """
@@ -93,9 +90,7 @@ def create_incident(description, comment, username, severity):
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     response = requests.post(url, auth=(username, SNOW_PASS), data=json.dumps(payload), headers=headers)
     incident_json = response.json()
-
     return incident_json['result']['number']
-
 
 def update_incident(incident, comment, username):
     """
@@ -112,7 +107,6 @@ def update_incident(incident, comment, username):
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     response = requests.patch(url, auth=(username, SNOW_PASS), data=json.dumps(payload), headers=headers)
 
-
 def get_incident_sys_id(incident):
     """
     This function will find the incident sys_id for the incident with the number {incident}
@@ -124,7 +118,6 @@ def get_incident_sys_id(incident):
     response = requests.get(url, auth=(SNOW_ADMIN, SNOW_PASS), headers=headers)
     incident_json = response.json()
     return incident_json['result'][0]['sys_id']
-
 
 def close_incident(incident, username):
     """
@@ -143,7 +136,6 @@ def close_incident(incident, username):
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     response = requests.put(url, auth=(username, SNOW_PASS), data=json.dumps(payload), headers=headers)
 
-
 def get_user_sys_id(username):
     """
     This function will retrieve the user sys_id for the user with the name {username}
@@ -155,7 +147,6 @@ def get_user_sys_id(username):
     response = requests.get(url, auth=(username, SNOW_PASS), headers=headers)
     user_json = response.json()
     return user_json['result'][0]['sys_id']
-
 
 def get_incident_comments(incident):
     """
@@ -170,7 +161,6 @@ def get_incident_comments(incident):
     comments_json = response.json()['result']
     return comments_json
 
-
 def delete_incident(incident):
     """
     This function will delete the incident with the number {incident}
@@ -182,7 +172,6 @@ def delete_incident(incident):
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     response = requests.delete(url, auth=(SNOW_ADMIN, SNOW_PASS), headers=headers)
     return response.status_code
-
 
 def find_comment(incident, comment):
     """
