@@ -25,7 +25,7 @@ import re
 import datetime
 import time
 import pytz
-from API.config.config import DNAC_IP, DNAC_FQDN
+from config import DNAC_IP, DNAC_FQDN
 from report_module import pdf_converter, json_export
 from showrunsection import show_run_section, show_run_section_array, show_run_headers
 
@@ -55,14 +55,12 @@ def compare_rules(cfg, audit_item, i):
     f1 = open(cfg, 'r')
     cfg = f1.readlines()
     f1.close()
-
     # create a diff_list that will include all the lines that are non compliant
     violation_output = ''
     scope = audit_item['Scope']
     operator = audit_item['Operator']
     value = audit_item['Value']
     message = audit_item['Message']
-    
     # for loop for a match in all_config
     if (scope == 'ALL_CONFIG') and ('MATCHES' in operator):
         for line in cfg:
@@ -80,12 +78,10 @@ def audit(cfg, data):
     :param audit_dict: imported dictionary of audit rules
     :return: text with config lines that violated in a dictionary
     """
-
     # open the old and new configuration fields
     f1 = open(cfg, 'r')
     cfg = f1.readlines()
     f1.close()
-
     # create a diff_list that will include all the lines that are non compliant
     violation_list = []
     violation_output = ''
@@ -217,11 +213,9 @@ def compliance_report(violation_list, filename):
     time_zone = 'US/Eastern'
     est_tz = pytz.timezone(time_zone)
     now_est = now_utc.astimezone(est_tz)
-    
     # Format the date and time string
     date_str = now_est.strftime('%m/%d/%Y')
     time_str = now_est.strftime('%H:%M:%S')
-        
     # Create a list to stor the lines
     device = filename.split('_')[0]
     reportlines = []
@@ -233,9 +227,8 @@ def compliance_report(violation_list, filename):
     reportlines.append(" ##################################################################################################\n")    
     for item in violation_list:
         reportlines.append(item)
-    
     # Output to screen
-    print('\n'.join(reportlines))
+    #print('\n'.join(reportlines))
     return reportlines
 
 # Read one file
@@ -248,8 +241,8 @@ def xml_file_reader(file):
 # Process multiple files
 def compliance_run(directory, data, report_files, json_files):
     # Loop through each file in the directory
-    report_path = report_files
-    json_path =  json_files
+    report_path = "../../" + report_files
+    json_path = "../../" + json_files
     compliance_data = []
     # Get the current date time in UTC timezone
     now_utc = datetime.datetime.now(pytz.UTC)
@@ -281,7 +274,6 @@ def external_audit(cfg, data):
     :param audit_dict: imported dictionary of audit rules
     :return: text with config lines that violated in a dictionary
     """
-
     # create a diff_list that will include all the lines that are non compliant
     violation_list = []
     violation_output = ''
@@ -405,8 +397,8 @@ def external_audit(cfg, data):
     return violation_list
 
 #     ----------------------------- MAIN -----------------------------
+# code below should be uncommented for development purposes and testing only
 
-# code below for development purposes and testing only
 """
 def main():
     data = {}

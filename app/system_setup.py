@@ -16,10 +16,7 @@
 
 #     ------------------------------- IMPORTS -------------------------------
 import os
-import sys
 import os.path
-import datetime
-import time
 import socket
 import subprocess
 from requests.auth import HTTPBasicAuth  # for Basic Auth
@@ -27,8 +24,10 @@ import dnac_apis
 import smtplib
 import ssl
 import getpass
+import zipfile
 import pytz
-from config import TIME_ZONE
+from service_scheduler import *
+from config import TIME_ZONE, CONFIG_PATH, COMPLIANCE_STORE
 
 #     ----------------------------- DEFINITIONS -----------------------------
 
@@ -36,27 +35,23 @@ from config import TIME_ZONE
 def DNAC_setup(file_path):
     # Define the path to the Python file to update
     #test_file_path = "./file.py"
-
     # Loop until valid input is given or cancel is entered
     while True:
         dnac_ip = input("\n\nEnter the DNA Center IP address you wish to connect (or 'cancel' to exit): ")
         if dnac_ip.lower() == "cancel":
             break
-
         # Test for a valid IP address
         try:
             socket.inet_aton(dnac_ip)
         except socket.error:
             print("\nInvalid IP address. Please try again.")
             continue
-
         # Test the connection to the server with a ping
         ping_cmd = ["ping", "-c", "1", "-W", "1", dnac_ip]
         ping_result = subprocess.run(ping_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if ping_result.returncode != 0:
             print("\nServer is not reachable. Please try again.")
             continue
-
         # Do a DNS lookup for the FQDN of the server
         try:
             dnac_fqdn = socket.getfqdn(dnac_ip)
@@ -67,10 +62,8 @@ def DNAC_setup(file_path):
         except socket.error:
             print("DNS lookup failed. Please try again.")
             continue
-
         dnac_usr = input("Enter the username for DNA Center: ")
         dnac_pwd = input("Enter the password for DNA Center: ")
-
         #Try connecting to DNA Center
         try:
             DNAC_AUTH = HTTPBasicAuth(dnac_usr, dnac_pwd)
@@ -80,7 +73,6 @@ def DNAC_setup(file_path):
         except:
             print("\nCredentials failed. Please try again.")
             continue
-
         # If all tests pass, replace lines in the Python file
         with open(file_path, "r") as f:
             lines = f.readlines()
@@ -96,7 +88,6 @@ def DNAC_setup(file_path):
                 new_lines.append(line)
         with open(file_path, "w") as f:
             f.writelines(new_lines)
-
         # Print a success message and exit the loop
         print("Server information updated successfully.")
         break
@@ -106,10 +97,8 @@ def SMTP_setup(file_path):
     # Define the typical gmail server settings
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-
     # Define the path to the Python file to update
     #test_file_path = "./file.py"
-
     # Loop until valid input is given or cancel is entered
     while True:
         # Ask for user input
@@ -119,8 +108,7 @@ def SMTP_setup(file_path):
         email_password = getpass.getpass("Enter your Gmail password: ")
         email_recipient = input("Enter the recipient email address: ")
         smtp_server = input("\nEnter the SMTP server address: ")
-        smtp_port = input("Enter the SMTP port: ")
-        
+        smtp_port = input("Enter the SMTP port: ")        
         # Test the connection to the SMTP server
         try:
             context = ssl.create_default_context()
@@ -132,8 +120,7 @@ def SMTP_setup(file_path):
             continue
         except:
             print("\nConnection to SMTP server failed. Please try again.")
-            continue
-        
+            continue        
         # Send a test email
         try:
             subject = "Test email from DNAC-COMPLIANCEMON"
@@ -145,11 +132,9 @@ def SMTP_setup(file_path):
                 server.sendmail(email_address, email_recipient, message)
         except:
             print("\nFailed to send test email. Please try again.")
-            continue
-        
+            continue        
         # Print a success message and exit the loop
         print("\nTest email sent successfully!")
-
         # If all tests pass, replace lines in the Python file
         with open(file_path, "r") as f:
             lines = f.readlines()
@@ -165,11 +150,12 @@ def SMTP_setup(file_path):
                 new_lines.append(f"SMTP_PASS = '{email_password}'\n")
             elif "NOTIFICATION_EMAIL =" in line:
                 new_lines.append(f"NOTIFICATION_EMAIL = '{email_recipient}'\n")
+            elif "SMTP_FLAG =" in line:
+                new_lines.append(f"SMTP_FLAG = True\n")
             else:
                 new_lines.append(line)
         with open(file_path, "w") as f:
             f.writelines(new_lines)
-
         # Print a success message and exit the loop
         print("\nSMTP Server information updated successfully.")
         break
@@ -179,14 +165,12 @@ def SMTP_setup(file_path):
 def TZONE_setup(file_path):
     # Define the path to the Python file to update
     #test_file_path = "./file.py"
-
     # Loop until valid input is given or cancel is entered
     while True:
         print("\n\nThe Time Zone is currently set for " + TIME_ZONE + ".\n\n")
         check = input("\nTo change the time zone enter [yes|y] (or 'cancel' to exit): ")
         if check.lower() == "cancel":
             break
-
         # Display a list of available countries
         print("\n\nAvailable countries:")
         country_codes = list(pytz.country_names.keys())
@@ -195,11 +179,9 @@ def TZONE_setup(file_path):
         rows = [country_codes[i:i+num_cols] for i in range(0, len(country_codes), num_cols)]
         for row in rows:
             cols = [f"{cc.ljust(2)} {pytz.country_names[cc].ljust(max_len)}" for cc in row]
-            print("  ".join(cols))
-        
+            print("  ".join(cols))        
         # Prompt the user to select a country
-        country_code = input("\nEnter the 2-letter country code for your location: ")
-        
+        country_code = input("\nEnter the 2-letter country code for your location: ")        
         # Validate the country code entered by the user
         if country_code not in pytz.country_names:
             print("\nInvalid country code. Please try again.")
@@ -212,8 +194,7 @@ def TZONE_setup(file_path):
             rows = [timezones[i:i+num_cols] for i in range(0, len(timezones), num_cols)]
             for i, row in enumerate(rows):
                 cols = [f"{i*num_cols+j+1}. {tz.ljust(max_len)}" for j, tz in enumerate(row)]
-                print("  ".join(cols))
-            
+                print("  ".join(cols))            
             # Prompt the user to select a timezone by number
             timezone_num = input("\nEnter the number of your timezone: ")
             try:
@@ -221,8 +202,7 @@ def TZONE_setup(file_path):
                 selected_timezone = timezones[timezone_idx]
                 print("\nSelected timezone:", selected_timezone)
             except (ValueError, IndexError):
-                print("\nInvalid timezone number. Please try again.")
-            
+                print("\nInvalid timezone number. Please try again.")            
             # If all tests pass, replace lines in the Python file
             with open(file_path, "r") as f:
                 lines = f.readlines()
@@ -234,17 +214,14 @@ def TZONE_setup(file_path):
                     new_lines.append(line)
             with open(file_path, "w") as f:
                 f.writelines(new_lines)
-
             # Print a success message and exit the loop
             print("\nTime Zone information updated successfully.")
             break
-
     return
 
 def system_settings():
     # Define the path to the Python file to update
     file_path = "./config.py"
-
     # Loop until valid input is given or cancel is entered
     while True:
         # Ask for user input
@@ -252,15 +229,14 @@ def system_settings():
         print("1. DNA Center Connection Settings")
         print("2. SMTP Connection Settings")
         print("3. Time Zone Settings")
-        print("4. Schedule Settings")
+        print("4. Upload Prime Rules for IOS-XE")
+        print("5. Schedule Settings")
         menu_input = input("\n\nEnter a number from above for setup (or 'cancel' to exit): ")
-
         if menu_input.lower() == "cancel":
             break
-
         # Test the connection to the SMTP server
         try:
-            if int(menu_input) <= 3 and int(menu_input) >= 1:
+            if int(menu_input) <= 5 and int(menu_input) >= 1:
                 # If all the tests pass
                 if int(menu_input) == 1:
                     DNAC_setup(file_path)
@@ -268,13 +244,40 @@ def system_settings():
                     SMTP_setup(file_path)
                 elif int(menu_input) == 3:
                     TZONE_setup(file_path)
+                elif int(menu_input) == 4:
+                    PRIME_import(CONFIG_PATH, COMPLIANCE_STORE)
+                elif int(menu_input) == 5:
+                    menu_scheduler()
         except:
-            print("\nValid selections only are 1 to 2. Please try again.")
+            print("\nValid selections only are 1 to 5. Please try again.")
             continue
     return
 
-#     ----------------------------- MAIN -----------------------------
+def PRIME_import(CONFIG_PATH, COMPLIANCE_STORE):    
+    # Loop until valid input is given or cancel is entered
+    while True:
+        file_path = input("\n\nEnter the file location to be uploaded (or 'cancel' to exit): ")
+        if file_path.lower() == "cancel":
+            break
+        elif file_path.startswith('~'):
+            file_path = os.path.expanduser(file_path)        
+        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        Compliance_Files = os.path.join(CONFIG_PATH, COMPLIANCE_STORE)        
+        test_str = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, file_name)
+        if not os.path.exists(Compliance_Files):
+            os.makedirs(Compliance_Files)        
+        if not os.path.exists(test_str):
+            # Open the zip file and extract its contents to the destination folder
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(Compliance_Files)        
+            # Print a message to confirm that the extraction was successful
+            print("\n\nThe zip file has been extracted to the destination folder.")
+            break
+        else:
+            print("\n\nThe Compliance Audits have already been extracted to the destination folder.")
+            break
 
+#     ----------------------------- MAIN -----------------------------
 # code below for development purposes and testing only
 
 if __name__ == '__main__':

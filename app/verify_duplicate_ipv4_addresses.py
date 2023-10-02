@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 
+####################################################################################
+# project: DNAC-ComplianceMon
+# module: verify_duplicate_ipv4_addresses.py
+# author: gzapodea@cisco.com
+# use case: Search for Duplicate IPv4 Addressing
+# developers:
+#            Gabi Zapodeanu, TME, Enterprise Networks, Cisco Systems
+####################################################################################
 
-# developed by Gabi Zapodeanu, TSA, GPO, Cisco Systems
-
+#     ------------------------------- IMPORTS -------------------------------
 
 import urllib3
 from requests.auth import HTTPBasicAuth  # for Basic Auth
@@ -16,6 +23,7 @@ urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warni
 
 DNAC_AUTH = HTTPBasicAuth(DNAC_USER, DNAC_PASS)
 
+#     -------------------------------- MAIN ---------------------------------
 
 def main():
     """
@@ -26,35 +34,25 @@ def main():
       - find if any clients are using the IPv4 addresses
     - Determine if deploying the configuration file will create an IP duplicate
     """
-
     # configuration template file name
     config_file = 'configuration_template.txt'
-
     # open file with the template
     cli_file = open(config_file, 'r')
-
     # read the file
     cli_config = cli_file.read()
     print('\n The CLI template:\n')
     print(cli_config)
-
     ipv4_address_list = utils.identify_ipv4_address(cli_config)
     print('\nThese valid IPv4 addresses will be configured:\n')
     print(ipv4_address_list)
-
     # get the DNA Center Auth token
-
     dnac_token = dnac_apis.get_dnac_jwt_token(DNAC_AUTH)
     print('\nThe DNA Center token is: ', dnac_token, '\n')
-
     # check each address against network devices and clients database
     # initialize duplicate_ip
-
     duplicate_ip = False
     for ipv4_address in ipv4_address_list:
-
         # check against network devices interfaces
-
         try:
             device_info = dnac_apis.check_ipv4_network_interface(ipv4_address, dnac_token)
             duplicate_ip = True
@@ -64,9 +62,7 @@ def main():
                 print('The IPv4 address ', ipv4_address, ' is used on this device ', device_info[0])
         except:
             pass
-
         # check against any hosts
-
         try:
             client_info = dnac_apis.get_client_info(ipv4_address, dnac_token)
             if client_info is not None:
@@ -74,16 +70,12 @@ def main():
                 print('The IPv4 address ', ipv4_address, ' is used by a client')
         except:
             pass
-
     if duplicate_ip:
         print('\nDeploying the template ', config_file, ' will create duplicated IPv4 addresses')
     else:
         print('\nDeploying the template ', config_file, ' will not create duplicated IPv4 addresses')
-
     # end of the application run
-
     print('\n\nEnd of Application Run')
-
 
 if __name__ == '__main__':
     main()

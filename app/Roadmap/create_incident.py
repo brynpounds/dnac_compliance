@@ -17,7 +17,6 @@ import requests
 import json
 import logging
 import netconf_restconf
-import config
 
 from config import SNOW_URL, SNOW_DEV, SNOW_PASS
 from config import IOS_XE_HOST, IOS_XE_USER, IOS_XE_PASS
@@ -26,11 +25,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
-
 def get_user_sys_id(username):
-
     # find the ServiceNow user_id for the specified user
-
     url = SNOW_URL + '/table/sys_user?sysparm_limit=1&name=' + username
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     response = requests.get(url, auth=(SNOW_DEV, SNOW_PASS), headers=headers)
@@ -38,11 +34,8 @@ def get_user_sys_id(username):
     print(user_json)
     return user_json['result'][0]['sys_id']
 
-
 def create_incident(description, comment, username, severity):
-
     # This function will create a new incident with the {description}, {comments}, severity for the {user}
-
     caller_sys_id = get_user_sys_id(username)
     print('\nAPIUSER ServiceNow sysid is: ' + caller_sys_id)
     url = SNOW_URL + '/table/incident'
@@ -60,8 +53,7 @@ def create_incident(description, comment, username, severity):
     logging.debug('Incident created: ' + incident_number)
     return incident_number
 
-
-# main application
+#     ----------------------------- MAIN -----------------------------
 
 logging.basicConfig(
     filename='application_run.log',

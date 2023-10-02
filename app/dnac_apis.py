@@ -30,9 +30,6 @@ DNAC_AUTH = HTTPBasicAuth(DNAC_USER, DNAC_PASS)
 
 #     ----------------------------- DEFINITIONS -----------------------------
 
-def bryn_test():
-    return "Howdy from app"
-
 def pprint(json_data):
     """
     Pretty print JSON formatted data
@@ -41,6 +38,18 @@ def pprint(json_data):
     """
     print(json.dumps(json_data, indent=4, separators=(' , ', ' : ')))
 
+def test_dnac_jwt_token(dnac_url, dnac_auth):
+    """
+    Create the authorization token required to access DNA C
+    Call to DNA C - /api/system/v1/auth/login
+    :param dnac_auth - DNA C Basic Auth string
+    :return: DNA C JWT token
+    """
+    url = dnac_url + '/dna/system/api/v1/auth/token'
+    header = {'content-type': 'application/json'}
+    response = requests.post(url, auth=dnac_auth, headers=header, verify=False)
+    dnac_jwt_token = response.json()['Token']
+    return dnac_jwt_token
 
 def get_dnac_jwt_token(dnac_auth):
     """
@@ -49,7 +58,6 @@ def get_dnac_jwt_token(dnac_auth):
     :param dnac_auth - DNA C Basic Auth string
     :return: DNA C JWT token
     """
-
     url = DNAC_URL + '/dna/system/api/v1/auth/token'
     header = {'content-type': 'application/json'}
     response = requests.post(url, auth=dnac_auth, headers=header, verify=False)
@@ -140,7 +148,6 @@ def create_commit_template(template_name, project_name, cli_template, dnac_jwt_t
     :return:
     """
     project_id = get_project_id(project_name, dnac_jwt_token)
-
     # prepare the template param to sent to DNA C
     payload = {
             "name": template_name,
@@ -164,20 +171,16 @@ def create_commit_template(template_name, project_name, cli_template, dnac_jwt_t
             "rollbackTemplateParams": [],
             "parentTemplateId": project_id
         }
-
     # check and delete older versions of the template
     # template_id = get_template_id(template_name, project_name, dnac_jwt_token)
     # if template_id:
     #    delete_template(template_name, project_name, dnac_jwt_token)
-
     # create the new template
     url = DNAC_URL + '/api/v1/template-programmer/project/' + project_id + '/template'
     header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
     response = requests.post(url, data=json.dumps(payload), headers=header, verify=False)
-
     # get the template id
     template_id = get_template_id(template_name, project_name, dnac_jwt_token)
-
     # commit template
     commit_template(template_id, 'committed by Python script', dnac_jwt_token)
 
@@ -210,11 +213,9 @@ def update_commit_template(template_name, project_name, cli_template, dnac_jwt_t
     """
     # get the project id
     project_id = get_project_id(project_name, dnac_jwt_token)
-
     # get the template id
     template_id = get_template_id(template_name, project_name, dnac_jwt_token)
     url = DNAC_URL + '/api/v1/template-programmer/template'
-
     # prepare the template param to sent to DNA C
     payload = {
         "name": template_name,
@@ -417,7 +418,6 @@ def locate_client_ip(client_ip, dnac_jwt_token):
     :param dnac_jwt_token: DNA C token
     :return: hostname, interface_name, vlan_id, or None, if the client does not exist
     """
-
     client_info = get_client_info(client_ip, dnac_jwt_token)
     if client_info is not None:
         hostname = client_info['connectedNetworkDeviceName']
@@ -569,12 +569,10 @@ def create_building(site_name, building_name, address, dnac_jwt_token):
     """
     # get the site id for the site name
     site_id = get_site_id(site_name, dnac_jwt_token)
-
     # get the geolocation info for address
     geo_info = get_geo_info(address, GOOGLE_API_KEY)
     print('\nGeolocation info for the address ', address, ' is:')
     pprint(geo_info)
-
     payload = {
         "additionalInfo": [
             {
@@ -632,7 +630,6 @@ def create_floor(building_name, floor_name, floor_number, dnac_jwt_token):
     """
     # get the site id
     building_id = get_building_id(building_name, dnac_jwt_token)
-
     payload = {
         "additionalInfo": [
             {
@@ -706,7 +703,6 @@ def assign_device_sn_building(device_sn, building_name, dnac_jwt_token):
     # get the building and device id's
     building_id = get_building_id(building_name, dnac_jwt_token)
     device_id = get_device_id_sn(device_sn, dnac_jwt_token)
-
     url = DNAC_URL + '/api/v1/group/' + building_id + '/member'
     payload = {"networkdevice": [device_id]}
     header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
@@ -725,7 +721,6 @@ def assign_device_name_building(device_name, building_name, dnac_jwt_token):
     # get the building and device id's
     building_id = get_building_id(building_name, dnac_jwt_token)
     device_id = get_device_id_name(device_name, dnac_jwt_token)
-
     url = DNAC_URL + '/api/v1/group/' + building_id + '/member'
     payload = {"networkdevice": [device_id]}
     header = {'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
@@ -813,13 +808,11 @@ def create_path_trace(src_ip, dest_ip, dnac_jwt_token):
     :param dnac_jwt_token: DNA C token
     :return: DNA C path visualisation id
     """
-
     param = {
         'destIP': dest_ip,
         'periodicRefresh': False,
         'sourceIP': src_ip
     }
-
     url = DNAC_URL + '/api/v1/flow-analysis'
     header = {'accept': 'application/json', 'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
     path_response = requests.post(url, data=json.dumps(param), headers=header, verify=False)
@@ -835,7 +828,6 @@ def get_path_trace_info(path_id, dnac_jwt_token):
     :param dnac_jwt_token: DNA C token
     :return: Path visualisation status, and the details in a list [device,interface_out,interface_in,device...]
     """
-
     url = DNAC_URL + '/api/v1/flow-analysis/' + path_id
     header = {'accept': 'application/json', 'content-type': 'application/json', 'x-auth-token': dnac_jwt_token}
     path_response = requests.get(url, headers=header, verify=False)
@@ -942,10 +934,8 @@ def get_output_command_runner(command, device_name, dnac_jwt_token):
     :param dnac_jwt_token: DNA C token
     :return: file with the command output
     """
-
     # get the DNA C device id
     device_id = get_device_id_name(device_name, dnac_jwt_token)
-
     # get the DNA C task id that will process the CLI command runner
     payload = {
         "commands": [command],
@@ -957,13 +947,11 @@ def get_output_command_runner(command, device_name, dnac_jwt_token):
     response = requests.post(url, data=json.dumps(payload), headers=header, verify=False)
     response_json = response.json()
     task_id = response_json['response']['taskId']
-
     # get task id status
     time.sleep(1)  # wait for a second to receive the file name
     task_result = check_task_id_output(task_id, dnac_jwt_token)
     file_info = json.loads(task_result['progress'])
     file_id = file_info['fileId']
-
     # get output from file
     time.sleep(2)  # wait for two seconds for the file to be ready
     file_output = get_content_file_id(file_id, dnac_jwt_token)
@@ -1059,42 +1047,30 @@ def check_ipv4_duplicate(config_file):
     :param config_file: configuration file name
     :return True/False
     """
-
     # open file with the template
     cli_file = open(config_file, 'r')
-
     # read the file
     cli_config = cli_file.read()
-
     ipv4_address_list = utils.identify_ipv4_address(cli_config)
-
     # get the DNA Center Auth token
-
     dnac_token = get_dnac_jwt_token(DNAC_AUTH)
-
     # check each address against network devices and clients database
     # initialize duplicate_ip
-
     duplicate_ip = False
     for ipv4_address in ipv4_address_list:
-
         # check against network devices interfaces
-
         try:
             device_info = check_ipv4_network_interface(ipv4_address, dnac_token)
             duplicate_ip = True
         except:
             pass
-
         # check against any hosts
-
         try:
             client_info = get_client_info(ipv4_address, dnac_token)
             if client_info is not None:
                 duplicate_ip = True
         except:
             pass
-
     if duplicate_ip:
         return True
     else:
@@ -1213,7 +1189,6 @@ def get_physical_topology(ip_address, dnac_jwt_token):
     topology_json = response.json()['response']
     topology_nodes = topology_json['nodes']
     topology_links = topology_json['links']
-
     # try to identify the physical topology
     for link in topology_links:
         try:
@@ -1229,6 +1204,8 @@ def get_physical_topology(ip_address, dnac_jwt_token):
             connected_device_hostname = None
     return connected_device_hostname, connected_port
 
+#     ----------------------------- MAIN -----------------------------
+# code below should be uncommented for development purposes and testing only
 
 # dnac_token =  get_dnac_jwt_token(DNAC_AUTH)
 
