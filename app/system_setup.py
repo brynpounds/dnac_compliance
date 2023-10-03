@@ -221,7 +221,7 @@ def TZONE_setup(file_path):
 
 def system_settings():
     # Define the path to the Python file to update
-    file_path = "./config.py"
+    file_path = "./configuration_template.py"
     # Loop until valid input is given or cancel is entered
     while True:
         # Ask for user input
