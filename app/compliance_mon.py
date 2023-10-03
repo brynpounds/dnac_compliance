@@ -37,7 +37,7 @@ from service_email import system_notification
 from requests.auth import HTTPBasicAuth  # for Basic Auth
 from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
 
-from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG
+from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG, APP_DIRECTORY
 
 urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warnings
 
@@ -142,11 +142,11 @@ def read_recent(DIRECTORY,filename):
     return file
 
 # uncomment the lines for development and testing if required.
-def main():
+def comp_main():
     os_setup()
     AUDIT_DATABASE = {}
     COMPLIANCE_DIRECTORY = "IOSXE"
-    COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY)
+    COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY, APP_DIRECTORY)
     AUDIT_DATABASE = all_files_into_dict(COMP_CHECKS)
     #print(f"First the Audit Rules from Prime loaded for processing against configs\n\n",AUDIT_DATABASE)
     #pause()   
@@ -195,8 +195,9 @@ def main():
         # if not; save; run the diff function
         # expected result create local config "database"
         # first get most recent config if exists
-        DIRECTORY = './'
-        recent_filename = read_recent(DIRECTORY,filename)
+        if APP_DIRECTORY != "/app/":
+            APP_DIRECTORY = './'
+        recent_filename = read_recent(APP_DIRECTORY,filename)
         if os.path.isfile(recent_filename):
             diff = compare_configs(recent_filename, temp_run_config)
             if diff != '':
@@ -236,9 +237,10 @@ def main():
                 f_config.close()
                 # retrieve the device management IP address
                 device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
-                print('Device: ' + device + ' - New config version stored\n\n')
+                DeviceConfig = "changed"
+                #Device: New config version stored
             else:
-                #print('Device: ' + device + ' - No configuration changes detected')
+                #Device: No configuration changes detected
                 if filename != recent_filename:
                     # version saved, save the running configuration to a file in the folder with the name
                     f_config = open(filename, 'w')
@@ -247,9 +249,10 @@ def main():
                     f_config.close()
                     # retrieve the device management IP address
                     device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
-                    print('Device: ' + device + ' - config stored\n\n')
+                    #Device: config stored
                 else:
-                    print('Device: ' + device + ' - config the same - skipping\n\n')
+                    DeviceConfig = "same"
+                    #Device: config the same
         else:
             # new device discovered, save the running configuration to a file in the folder with the name
             # {Config_Files}
@@ -259,18 +262,21 @@ def main():
             f_config.close()
             # retrieve the device management IP address
             device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
-            #print('Device: ' + device + ' - New device discovered\n\n')
+            DeviceConfig = "new"
+            #Device: New device discovered
     #pause()
     report = compliance_run("./", AUDIT_DATABASE, Report_Files, Json_Files)
     if SMTP_FLAG == True:
         system_notification(report)
+        outcome = "SUCCESS-EMAIL"
     else:
-        print('\n\nUnable to send Notification Email - as SMTP settings are not set.')
-    #print('Wait for 10 seconds and start again')
-    #time.sleep(10)
+        SMTP_FLAG == False
+        outcome = "SUCCESS-NOEMAIL"
+        #Unable to send Notification Email - as SMTP settings are not set
+    return outcome
 
 #     ----------------------------- MAIN -----------------------------
 # uncomment the lines in definition main() for development and testing if required.
 
 if __name__ == '__main__':
-    main()
+    comp_main()
