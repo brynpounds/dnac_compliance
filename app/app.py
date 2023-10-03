@@ -13,8 +13,8 @@ load_dotenv()
 try:
     from API import (app,
                      api,
-                     HeathController,docs,
-                     KeithController,
+                     HealthController,docs,
+                     DNACenterCompliance,
                      WeatherController,
                      DNACTokenController,
                      get_all_device_infoController,
@@ -366,11 +366,11 @@ def weather():
     proper_json_response = json.loads(our_response_content)
     return render_template("weather.html", message="HOWDY", testing=proper_json_response)
 
-api.add_resource(HeathController, '/health_check')
-docs.register(HeathController)
+api.add_resource(HealthController, '/health_check')
+docs.register(HealthController)
 
-api.add_resource(KeithController, '/keith_code')
-docs.register(KeithController)
+api.add_resource(DNACenterCompliance, '/DNA_Center_Compliance_Lite')
+docs.register(DNACenterCompliance)
 
 api.add_resource(WeatherController, '/check_weather')
 docs.register(WeatherController)
@@ -539,8 +539,6 @@ docs.register(pnp_get_device_infoController)
 
 api.add_resource(get_physical_topologyController, '/get_physical_topology')
 docs.register(get_physical_topologyController)
-
-
 
 if __name__ == '__main__':
     app.run(threaded=True)

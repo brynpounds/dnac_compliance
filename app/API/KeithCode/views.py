@@ -15,19 +15,28 @@ try:
     
     from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
     from requests.auth import HTTPBasicAuth  # for Basic Auth
-    from config import DNAC_URL, DNAC_PASS, DNAC_USER        
+    from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER        
     from dnac_apis import *    
     
     print("All imports are ok............")
 except Exception as e:
     print("Error: {} ".format(e))
 
-class KeithControllerSchema(Schema):
+class DNACenterControllerSchema(Schema):
     name = fields.String(required=True, description="name is required ", example="Keith")
 
-class KeithController(MethodResource, Resource):
-    @doc(description='Echo Experiment for Keith Baldwin', tags=['Placeholder for Keith Code'])
-    @use_kwargs(KeithControllerSchema, location=('json'))
+class DNACenterCompliance(MethodResource, Resource):
+    import difference_engine
+    import compliance_mon
+    import prime_compliance_dictionary
+    import report_module
+    import system_setup
+    import service_email
+    import service_scheduler
+    import utils
+    import dnac_apis
+    @doc(description='DNA Center Compliance Lite API', tags=['DNA Center Compliance'])
+    @use_kwargs(DNACenterControllerSchema, location=('json'))
     def post(self, **kwargs):
         _message = kwargs.get("name", "default")
         response = {"message":"Good Day " + _message}
