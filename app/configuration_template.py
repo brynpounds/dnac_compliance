@@ -29,6 +29,8 @@ SMTP_EMAIL = "sender@gmail.com"
 SMTP_PASS = "16-digit-app-password"
 # Enter receiver address
 NOTIFICATION_EMAIL = "receiver@gmail.com"
+# SMTP unset FLAG
+SMTP_FLAG = False
 
 # Update this section for the Time Zone
 TIME_ZONE = 'US/Eastern'
@@ -39,3 +41,4 @@ CONFIG_STORE = f"DNAC-CompMon-Data/Configs/"
 JSON_STORE = f"DNAC-CompMon-Data/JSONdata/"
 REPORT_STORE = f"API/static/"
 COMPLIANCE_STORE = f"PrimeComplianceChecks/"
+APP_DIRECTORY = '/app/'

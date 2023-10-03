@@ -3,6 +3,7 @@ import json
 import requests
 import time
 import subprocess
+import shutil
 from subprocess import PIPE
 from dotenv import load_dotenv
 from API.config.config import DNAC_URL, DNAC_PASS, DNAC_USER
@@ -110,176 +111,20 @@ def configure_system():
         elif not password:
             flash('Password is required!')
         else:
-            messages.append({'ip_address': ip_address, 'username': username, 'password':password})
             DNAC_setup_app(PATH,DNAC_IP,DNAC_USER,DNAC_PASS)
             return redirect(url_for('status'))    
-    return render_template("configure_system.html", messages=messages, DNAC_URL= DNAC_IP)
+    return render_template("configure_system.html")
 
 @app.route("/report", methods=('GET', 'POST'))
+#modified to use existing code
 def serve_report():
     if request.method == 'POST':
         message = "Reports..."
         #file_copy = subprocess.run(["mv", "/app/DNAC-CompMon-Data/Reports/*.pdf", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
         result = subprocess.run(["ls", "-l", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
         contents = result.stdout.decode('utf8')    
-        #######################################
-        
-        os_setup()
-        
-        AUDIT_DATABASE = {}
-        COMPLIANCE_DIRECTORY = "IOSXE"
-        COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY)
-            
-        AUDIT_DATABASE = all_files_into_dict(COMP_CHECKS)
-        #print(f"First the Audit Rules from Prime loaded for processing against configs\n\n",AUDIT_DATABASE)
-        #pause()   
-        
-        Config_Files, Report_Files, Json_Files = data_library(CONFIG_PATH,CONFIG_STORE,REPORT_STORE,JSON_STORE)
-        os.chdir(Config_Files)
-    
-        temp_run_config = "temp_run_config.txt"
-        logging.basicConfig(
-            filename='application_run.log',
-            level=logging.DEBUG,
-            format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
-            
-        #print("DNA Center Compliance Monitor:\n")
-        #print("We are going to collect all configurations for routers and switches your DNA Center")
-        #print("\n\nDNA CENTER INTEROGATED: " + DNAC_FQDN + " @ IP ADDRESS: " + DNAC_IP)
-        #print("\n\nThis is the Token we will use for Authentication:")
-        dnac_token = dnac_apis.get_dnac_jwt_token(DNAC_AUTH)
-        #print('\nDNA Center AUTH Token: \n', dnac_token, '\n')
-        all_devices_info = dnac_apis.get_all_device_info(dnac_token)
-        all_devices_hostnames = []
-        for device in all_devices_info:
-            if device['family'] == 'Switches and Hubs' or device['family'] == 'Routers':
-                all_devices_hostnames.append(device['hostname'])
-            
-        # Get the current date time in UTC timezone
-        now_utc = datetime.datetime.now(pytz.UTC)
-        # Convert to timezone
-        time_zone = 'US/Eastern'
-        tz = pytz.timezone(time_zone)
-        now_tz = now_utc.astimezone(tz)
-        # Format the date and time string
-        date_str = now_tz.strftime('%m/%d/%Y').replace('/', '_')
-        time_str = now_tz.strftime('%H:%M:%S').replace(':', '_')
-        for device in all_devices_hostnames:
-            device_run_config = dnac_apis.get_device_config(device, dnac_token)
-            filename = str(device) + '_' + date_str + '_run_config.txt'
-            
-            # save the running config to a temp file
-            f_temp = open(temp_run_config, 'w')
-            f_temp.write(device_run_config)
-            f_temp.seek(0)  # reset the file pointer to 0
-            f_temp.close()
-            
-            # check for existing configuration file
-            # if yes; run the check for changes; diff function
-            # if not; save; run the diff function
-            # expected result create local config "database"
-            
-            # first get most recent config if exists
-            
-            ############ Changed for container!!!  ###########
-            DIRECTORY = '/app/'
-            ##################################################
-            
-            recent_filename = read_recent(DIRECTORY,filename)
-            if os.path.isfile(recent_filename):
-                diff = compare_configs(recent_filename, temp_run_config)
-                
-                if diff != '':
-                    # retrieve the device location using DNA C REST APIs
-                    location = dnac_apis.get_device_location(device, dnac_token)
-                    # find the users that made configuration changes
-                    with open(temp_run_config, 'r') as f:
-                        user_info = 'User info no available'
-                        for line in f:
-                            if 'Last configuration change' in line:
-                                user_info = line
-                    
-                    # define the incident description and comment
-                    short_description = 'Configuration Change Alert - ' + device
-                    comment = 'The device with the name: ' + device + '\nhas detected a Configuration Change'
-                    
-                    print(comment)
-                    
-                    # get the device health from DNA Center
-                    current_time_epoch = utils.get_epoch_current_time()
-                    device_details = dnac_apis.get_device_health(device, current_time_epoch, dnac_token)
-                    
-                    device_sn = device_details['serialNumber']
-                    device_mngmnt_ip_address = device_details['managementIpAddr']
-                    device_family = device_details['platformId']
-                    device_os_info = device_details['osType'] + ',  ' + device_details['softwareVersion']
-                    device_health = device_details['overallHealth']
-                    
-                    updated_comment = '\nDevice location: ' + location
-                    updated_comment += '\nDevice family: ' + device_family
-                    updated_comment += '\nDevice OS info: ' + device_os_info
-                    updated_comment += '\nDevice S/N: ' + device_sn
-                    updated_comment += '\nDevice Health: ' + str(device_health) + '/10'
-                    updated_comment += '\nDevice management IP address: ' + device_mngmnt_ip_address
-                    
-                    print(updated_comment)
-                    
-                    updated_comment = '\nThe configuration changes are\n' + diff + '\n\n' + user_info
-                    
-                    print(updated_comment)
-    
-                    # new version discovered, save the running configuration to a file in the folder with the name
-                    f_config = open(filename, 'w')
-                    f_config.write(device_run_config)
-                    f_config.seek(0)
-                    f_config.close()
-                    
-                    # retrieve the device management IP address
-                    device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
-                    
-                    print('Device: ' + device + ' - New config version stored\n\n')
-                    
-                else:
-                    print('Device: ' + device + ' - No configuration changes detected')
-    
-                    if filename != recent_filename:
-                        # version saved, save the running configuration to a file in the folder with the name
-                        f_config = open(filename, 'w')
-                        f_config.write(device_run_config)
-                        f_config.seek(0)
-                        f_config.close()
-                        
-                        # retrieve the device management IP address
-                        device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
-                        
-                        print('Device: ' + device + ' - config stored\n\n')
-                    else:
-                        print('Device: ' + device + ' - config the same - skipping\n\n')
-            else:
-                # new device discovered, save the running configuration to a file in the folder with the name
-                # {Config_Files}
-                f_config = open(filename, 'w')
-                f_config.write(device_run_config)
-                f_config.seek(0)
-                f_config.close()
-                
-                # retrieve the device management IP address
-                device_mngmnt_ip_address = dnac_apis.get_device_management_ip(device, dnac_token)
-                
-                print('Device: ' + device + ' - New device discovered\n\n')
-        ############ Had to change foer the container ################
-        report = compliance_run("./", AUDIT_DATABASE, Report_Files, Json_Files)
-        ####################################
-        
-        
-        
-        
-        
-        ####################
+        comp_main()
         return render_template('report.html', message=message, reports=contents.split("total")[1], debug=AUDIT_DATABASE)
-              
-        
     message = "Reports..."
     file_copy = subprocess.run(["mv", "/app/DNAC-CompMon-Data/Reports/*.pdf", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
     result = subprocess.run(["ls", "-l", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
