@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from API.config.config import DNAC_URL, DNAC_PASS, DNAC_USER
 from compliance_mon import *
 from difference_engine import *
-from system_setup import *
 load_dotenv()
 
 try:
@@ -91,18 +90,64 @@ def about():
     return render_template("about.html")
 
 @app.route("/configure_system", methods=('GET', 'POST'))
-#modified to use existing code
 def configure_system():
     global DNAC_IP
     global DNAC_USER
     global DNAC_PASS
     global DNAC_URL
     if request.method == 'POST':
-        DNAC_IP = request.form['ip_address']
-        DNAC_USER = request.form['username']
-        DNAC_PASS = request.form['password']
-        # Define the path to the Python file to update
-        PATH = "./configuration_template.py"
+        ip_address = request.form['ip_address']
+        username = request.form['username']
+        password = request.form['password']
+        file1 = open('/app/APIconfig.py', 'w')
+        #file1.writelines("\nNew DNAC URL: " + ip_address + "\nNew Username :" + username + "\nNew Password: " + password)
+        file1.write('''####################################################################################
+# project: DNAC-ComplianceMon
+# module: config.py
+# author: kebaldwi@cisco.com
+# use case: Simple Check of XML audit files against configuration
+# developers:
+#            Gabi Zapodeanu, TME, Enterprise Networks, Cisco Systems
+#            Keith Baldwin, TSA, EN Architectures, Cisco Systems
+#            Bryn Pounds, PSA, WW Architectures, Cisco Systems
+####################################################################################
+
+import socket
+
+# This file contains the:
+# DNAC username and password, server info and file locations
+
+# Update this section with the DNA Center server info and user information
+DNAC_IP = "''' + ip_address + '''"
+DNAC_USER = "''' + username + '''"
+DNAC_PASS = "''' + password + '''"
+DNAC_URL = 'https://' + DNAC_IP
+DNAC_FQDN = socket.getfqdn(DNAC_IP)
+
+# Update this section for Email Notification
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+# Enter your address
+SMTP_EMAIL = "sender@gmail.com"
+SMTP_PASS = "16-digit-app-password"
+# Enter receiver address
+NOTIFICATION_EMAIL = "receiver@gmail.com"
+
+# Update this section for the Time Zone
+TIME_ZONE = 'US/Eastern'
+
+# File location to be used for configurations05a356
+CONFIG_PATH = f"./"
+CONFIG_STORE = f"DNAC-CompMon-Data/Configs/"
+JSON_STORE = f"DNAC-CompMon-Data/JSONdata/"
+REPORT_STORE = f"API/static/"
+COMPLIANCE_STORE = f"PrimeComplianceChecks/"''')
+        file1.close()
+        DNAC_IP = ip_address
+        DNAC_USER = username
+        DNAC_PASS = password
+        DNAC_URL = 'https://' + DNAC_IP
+        CONFIG_PATH
         if not ip_address:
             flash('IP Address is required!')
         elif not username:
@@ -111,7 +156,6 @@ def configure_system():
             flash('Password is required!')
         else:
             messages.append({'ip_address': ip_address, 'username': username, 'password':password})
-            DNAC_setup_app(PATH,DNAC_IP,DNAC_USER,DNAC_PASS)
             return redirect(url_for('status'))    
     return render_template("configure_system.html", messages=messages, DNAC_URL= DNAC_IP)
 

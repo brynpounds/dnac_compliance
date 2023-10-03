@@ -45,12 +45,14 @@ def DNAC_setup(file_path):
             socket.inet_aton(dnac_ip)
         except socket.error:
             print("\nInvalid IP address. Please try again.")
+            outcome = "InvalidIP"
             continue
         # Test the connection to the server with a ping
         ping_cmd = ["ping", "-c", "1", "-W", "1", dnac_ip]
         ping_result = subprocess.run(ping_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if ping_result.returncode != 0:
             print("\nServer is not reachable. Please try again.")
+            outcome = "InvalidIP"
             continue
         # Do a DNS lookup for the FQDN of the server
         try:
@@ -58,9 +60,11 @@ def DNAC_setup(file_path):
             dns_lookup = socket.gethostbyname(dnac_fqdn)
             if dns_lookup != dnac_ip:
                 print("\nDNS lookup failed. Please try again.")
+                outcome = "InvalidDNS"
                 continue
         except socket.error:
             print("DNS lookup failed. Please try again.")
+            outcome = "InvalidDNS"
             continue
         dnac_usr = input("Enter the username for DNA Center: ")
         dnac_pwd = input("Enter the password for DNA Center: ")
@@ -72,6 +76,7 @@ def DNAC_setup(file_path):
             print("\nDNA Center connection test passed.")
         except:
             print("\nCredentials failed. Please try again.")
+            outcome = "InvalidCred"
             continue
         # If all tests pass, replace lines in the Python file
         with open(file_path, "r") as f:
@@ -90,8 +95,70 @@ def DNAC_setup(file_path):
             f.writelines(new_lines)
         # Print a success message and exit the loop
         print("Server information updated successfully.")
+        outcome = "SUCCESS"
         break
-    return
+    return outcome
+
+# This function sets the DNA Center connection details
+def DNAC_setup_app(file_path,dnac_ip,dnac_usr,dnac_pwd):
+    # Define the path to the Python file to update
+    # Loop until valid input is given or cancel is entered
+    while True:
+        # Test for a valid IP address
+        try:
+            socket.inet_aton(dnac_ip)
+        except socket.error:
+            #Invalid IP address. Please try again.
+            outcome = "InvalidIP"
+            break
+        # Test the connection to the server with a ping
+        ping_cmd = ["ping", "-c", "1", "-W", "1", dnac_ip]
+        ping_result = subprocess.run(ping_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if ping_result.returncode != 0:
+            #Server is not reachable. Please try again.
+            outcome = "InvalidIP"
+            break
+        # Do a DNS lookup for the FQDN of the server
+        try:
+            dnac_fqdn = socket.getfqdn(dnac_ip)
+            dns_lookup = socket.gethostbyname(dnac_fqdn)
+            if dns_lookup != dnac_ip:
+                #DNS lookup failed. Please try again.
+                outcome = "InvalidDNS"
+                break
+        except socket.error:
+            #DNS lookup failed. Please try again.
+            outcome = "InvalidDNS"
+            break
+        #Try connecting to DNA Center
+        try:
+            DNAC_AUTH = HTTPBasicAuth(dnac_usr, dnac_pwd)
+            DNAC_URL = "https://" + dnac_ip
+            dnac_token = dnac_apis.test_dnac_jwt_token(DNAC_URL, DNAC_AUTH)
+            #DNA Center connection test passed.
+        except:
+            #Credentials failed. Please try again.
+            outcome = "InvalidCred"
+            break
+        # If all tests pass, replace lines in the Python file
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+        new_lines = []
+        for line in lines:
+            if "DNAC_IP =" in line:
+                new_lines.append(f"DNAC_IP = '{dnac_ip}'\n")
+            elif "DNAC_USER =" in line:
+                new_lines.append(f"DNAC_USER = '{dnac_usr}'\n")
+            elif "DNAC_PASS =" in line:
+                new_lines.append(f"DNAC_PASS = '{dnac_pwd}'\n")
+            else:
+                new_lines.append(line)
+        with open(file_path, "w") as f:
+            f.writelines(new_lines)
+        # Print a success message and exit the loop
+        outcome = "SUCCESS"
+        break
+    return outcome
 
 def SMTP_setup(file_path):
     # Define the typical gmail server settings
