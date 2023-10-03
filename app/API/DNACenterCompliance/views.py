@@ -149,9 +149,6 @@ class get_project_idController(MethodResource, Resource):
         proj_json = response.json()
         proj_id = proj_json[0]['id']
         return proj_id
-    
-    
-    
 
 class get_project_infoControllerSchema(Schema):
     project_name = fields.String(required=True, description="project_name is required ", example="00000")
@@ -171,9 +168,6 @@ class get_project_infoController(MethodResource, Resource):
         project_json = response.json()
         template_list = project_json[0]['templates']
         return template_list
-    
-    
-    
 
 class create_commit_templateControllerSchema(Schema):
     template_name = fields.String(required=True, description="template_name is required ", example="00000")
