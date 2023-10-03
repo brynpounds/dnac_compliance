@@ -13,7 +13,7 @@ except Exception as e:
     print("Error: {} ".format(e))
 
 
-class HeathController(MethodResource, Resource):
+class HealthController(MethodResource, Resource):
 
     @doc(description='This is health Endpoint', tags=['Health and testing Endpoints'])
     def get(self):

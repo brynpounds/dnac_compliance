@@ -8,8 +8,8 @@ try:
     from flask_apispec.views import MethodResource
     from flask_apispec import marshal_with, doc, use_kwargs
 
-    from API.ClusterHealth.views import HeathController
-    from API.KeithCode.views import KeithController
+    from API.ClusterHealth.views import HealthController
+    from API.KeithCode.views import DNACenterCompliance
     from API.KeithCode.views import WeatherController
     from API.KeithCode.views import DNACTokenController
     from API.KeithCode.views import get_all_device_infoController
@@ -79,7 +79,7 @@ app.config['SECRET_KEY'] = 'C1sc012345'
 api = Api(app)  # Flask restful wraps Flask app around it.
 app.config.update({
     'APISPEC_SPEC': APISpec(
-        title='DNAC Complaince',
+        title='DNA Center Compliance Lite',
         version='v1',
         plugins=[MarshmallowPlugin()],
         openapi_version='2.0.0'
