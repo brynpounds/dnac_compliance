@@ -5,7 +5,7 @@ services:
     build:
       context: ./
       dockerfile: release.Dockerfile
-    container_name: DNAC-Comp-Monitor
+    container_name: myapi-template2
     restart: always
     env_file:
       - app/dev.env

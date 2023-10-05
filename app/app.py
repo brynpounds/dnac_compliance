@@ -123,7 +123,7 @@ def serve_report():
         #result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
         #contents = result.stdout.decode('utf8')    
         comp_main()
-        return redirect('report.html') 
+        return redirect('/') 
         #return render_template('report.html', message=message, reports=contents.split("total")[1])
     message = "Reports..."
     result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
