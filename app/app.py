@@ -119,16 +119,19 @@ def configure_system():
 #modified to use existing code
 def serve_report():
     if request.method == 'POST':
-        #message = "Reports..."
-        #result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
-        #contents = result.stdout.decode('utf8')    
         comp_main()
         return redirect('/') 
-        #return render_template('report.html', message=message, reports=contents.split("total")[1])
     message = "Reports..."
     result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
     contents = result.stdout.decode('utf8')
     return render_template('report.html', message=message, reports=contents.split("total")[1])
+
+@app.route('/download/<path:filename>')
+def download_file(filename):
+    # specify the path to the external directory
+    external_directory = '/app/DNAC-CompMon-Data/Reports/'
+    # use send_from_directory to serve the file
+    return send_from_directory(external_directory, filename, as_attachment=True)
 
 @app.route("/test")
 def test():
