@@ -16,19 +16,19 @@
         <label for="title">DNA Center IP Address (IP only)</label>
         <br>
         <input type="text" name="ip_address"
-               placeholder="10.10.10.10"
+               placeholder="{{ ip_address }}"
                value="{{ request.form['ip_address'] }}"></input>
         <br><p></p>
         <label for="title">DNA Center Username</label>
         <br>
         <input type="text" name="username"
-               placeholder="admin"
+               placeholder="{{ username }}"
                value="{{ request.form['username'] }}"></input>
         <br><p></p>
         <label for="title">DNA Center Password</label>
         <br>
         <input type="text" name="password"
-               placeholder="C1sc012345"
+               placeholder="{{ password }}"
                value="{{ request.form['password'] }}"></input>
         <br><p></p>
         <label for="content">Submit</label>

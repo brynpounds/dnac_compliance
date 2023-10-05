@@ -1,6 +1,6 @@
 ####################################################################################
 # project: DNAC-ComplianceMon
-# module: config.py
+# module: configuration_template.py
 # author: kebaldwi@cisco.com
 # use case: Simple Check of XML audit files against configuration
 # developers:
@@ -33,7 +33,7 @@ NOTIFICATION_EMAIL = "receiver@gmail.com"
 SMTP_FLAG = False
 
 # Update this section for the Time Zone
-TIME_ZONE = 'America/Indiana/Indianapolis'
+TIME_ZONE = 'US/Eastern'
 
 # File location to be used for configurations
 CONFIG_PATH = f"./"
@@ -41,3 +41,5 @@ CONFIG_STORE = f"DNAC-CompMon-Data/Configs/"
 JSON_STORE = f"DNAC-CompMon-Data/JSONdata/"
 REPORT_STORE = f"DNAC-CompMon-Data/Reports/"
 COMPLIANCE_STORE = f"PrimeComplianceChecks/"
+SYSTEM_STORE = f"DNAC-CompMon-Data/System"
+APP_DIRECTORY = f"/app/"

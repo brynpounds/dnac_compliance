@@ -6,7 +6,7 @@ import subprocess
 import shutil
 from subprocess import PIPE
 from dotenv import load_dotenv
-from API.config.config import DNAC_URL, DNAC_PASS, DNAC_USER
+from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER
 from compliance_mon import *
 from difference_engine import *
 from system_setup import *
@@ -104,31 +104,30 @@ def configure_system():
         DNAC_PASS = request.form['password']
         # Define the path to the Python file to update
         PATH = "./configuration_template.py"
-        if not ip_address:
+        if not DNAC_IP:
             flash('IP Address is required!')
-        elif not username:
+        elif not DNAC_USER:
             flash('Username is required!')        
-        elif not password:
+        elif not DNAC_PASS:
             flash('Password is required!')
         else:
             DNAC_setup_app(PATH,DNAC_IP,DNAC_USER,DNAC_PASS)
             return redirect(url_for('status'))    
-    return render_template("configure_system.html")
+    return render_template("configure_system.html",ip_address=DNAC_IP,username=DNAC_USER,password=DNAC_PASS )
 
 @app.route("/report", methods=('GET', 'POST'))
 #modified to use existing code
 def serve_report():
     if request.method == 'POST':
-        message = "Reports..."
-        #file_copy = subprocess.run(["mv", "/app/DNAC-CompMon-Data/Reports/*.pdf", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
-        result = subprocess.run(["ls", "-l", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
-        contents = result.stdout.decode('utf8')    
+        #message = "Reports..."
+        #result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
+        #contents = result.stdout.decode('utf8')    
         comp_main()
-        return render_template('report.html', message=message, reports=contents.split("total")[1], debug=AUDIT_DATABASE)
+        return redirect('report.html') 
+        #return render_template('report.html', message=message, reports=contents.split("total")[1])
     message = "Reports..."
-    file_copy = subprocess.run(["mv", "/app/DNAC-CompMon-Data/Reports/*.pdf", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
-    result = subprocess.run(["ls", "-l", "/app/API/static/", "/dev/null"], stdout=PIPE, stderr=PIPE)
-    contents = result.stdout.decode('utf8')    
+    result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
+    contents = result.stdout.decode('utf8')
     return render_template('report.html', message=message, reports=contents.split("total")[1])
 
 @app.route("/test")
@@ -137,11 +136,9 @@ def test():
 
 @app.route("/status")
 def status():
-    file1 = open('/app/API/config/config.py', 'r')
+    file1 = open('/app/configuration_template.py', 'r')
     contents = file1.read()
     file1.close()
-    
-    
     url = 'http://localhost:8080/health_check'
     response = requests.get(url)
     our_response_content = response.content.decode('utf8')

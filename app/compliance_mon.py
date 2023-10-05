@@ -20,6 +20,7 @@ import sys
 import os.path
 import datetime
 import pytz
+import shutil
 
 import difflib
 import urllib3
@@ -37,7 +38,7 @@ from service_email import system_notification
 from requests.auth import HTTPBasicAuth  # for Basic Auth
 from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
 
-from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG, APP_DIRECTORY
+from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, CONFIG_PATH, CONFIG_STORE, COMPLIANCE_STORE, DNAC_IP, DNAC_FQDN, JSON_STORE, REPORT_STORE, SMTP_FLAG, SYSTEM_STORE, APP_DIRECTORY
 
 urllib3.disable_warnings(InsecureRequestWarning)  # disable insecure https warnings
 
@@ -62,7 +63,7 @@ def pause():
     else:
         os.system('cls')
 
-def data_library(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE):
+def data_library(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE):
     Report_Files = os.path.join(CONFIG_PATH, REPORT_STORE)
     if not os.path.exists(Report_Files):
         os.makedirs(Report_Files)
@@ -72,6 +73,12 @@ def data_library(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE):
     Config_Files = os.path.join(CONFIG_PATH, CONFIG_STORE)
     if not os.path.exists(Config_Files):
         os.makedirs(Config_Files)
+    System_Files = os.path.join(CONFIG_PATH, SYSTEM_STORE)
+    if not os.path.exists(System_Files):
+        os.makedirs(System_Files)
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
+    else:
+        shutil.copy("./DNAC-CompMon-Data/System/config-backup.py","./configuration_template.py")
     #os.chdir(Config_Files)
     return Config_Files, Report_Files, Json_Files
 
@@ -146,16 +153,16 @@ def comp_main():
     os_setup()
     AUDIT_DATABASE = {}
     COMPLIANCE_DIRECTORY = "IOSXE"
-    COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY, APP_DIRECTORY)
+    COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY)
     AUDIT_DATABASE = all_files_into_dict(COMP_CHECKS)
     #print(f"First the Audit Rules from Prime loaded for processing against configs\n\n",AUDIT_DATABASE)
     #pause()   
-    Config_Files, Report_Files, Json_Files = data_library(CONFIG_PATH,CONFIG_STORE,REPORT_STORE,JSON_STORE)
+    Config_Files, Report_Files, Json_Files = data_library(CONFIG_PATH,CONFIG_STORE,REPORT_STORE,JSON_STORE,SYSTEM_STORE)
     os.chdir(Config_Files)
     temp_run_config = "temp_run_config.txt"
     # logging, debug level, to file {application_run.log}
     logging.basicConfig(
-        filename='application_run.log',
+        filename='/app/DNAC-CompMon-Data/System/application_run.log',
         level=logging.DEBUG,
         format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
@@ -195,8 +202,6 @@ def comp_main():
         # if not; save; run the diff function
         # expected result create local config "database"
         # first get most recent config if exists
-        if APP_DIRECTORY != "/app/":
-            APP_DIRECTORY = './'
         recent_filename = read_recent(APP_DIRECTORY,filename)
         if os.path.isfile(recent_filename):
             diff = compare_configs(recent_filename, temp_run_config)

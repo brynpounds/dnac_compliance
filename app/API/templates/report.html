@@ -12,7 +12,7 @@
     {% for item in reports.split("\n") %}
       {% for thing in item.split(" ") %}
         {% if ".pdf" in thing %}
-          <a href="/static/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
+          <a href="/app/DNAC-CompMon-Data/Reports/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
         {% endif %}
       {% endfor %}
     {% endfor %}
@@ -20,7 +20,7 @@
     <script src="/static/serve.js" charset="utf-8"></script>
   <form method="post">
   <p> Click submit to run a new report </p>
-    <button type="submit">Submit</button>
+    <button type="submit">Create Report</button>
   </form>
   </body>
     {% endblock %}
