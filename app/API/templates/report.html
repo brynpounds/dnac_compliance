@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-    {% extends "template.html" %}
-    {% block content %}  
-    <head>
-    <title>DNA Center Compliance Lite - Reports</title>
+  <head>
+    <title>Compliance Lite - Reports</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
+    {% extends "template.html" %}
+    {% block content %}  
     <h1>{{message}}</h1>
     <p>
     {% for item in reports.split("\n") %}
       {% for thing in item.split(" ") %}
         {% if ".pdf" in thing %}
-          <a href="/app/DNAC-CompMon-Data/Reports/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
+          <a href="/download/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
         {% endif %}
       {% endfor %}
     {% endfor %}
@@ -22,7 +22,6 @@
   <p> Click submit to run a new report </p>
     <button type="submit">Create Report</button>
   </form>
-  </body>
-    {% endblock %}
+  {% endblock %}
   </body>
 </html>
