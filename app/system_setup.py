@@ -17,6 +17,7 @@
 #     ------------------------------- IMPORTS -------------------------------
 import os
 import os.path
+import shutil
 import socket
 import subprocess
 from requests.auth import HTTPBasicAuth  # for Basic Auth
@@ -157,6 +158,7 @@ def DNAC_setup_app(file_path,dnac_ip,dnac_usr,dnac_pwd):
             f.writelines(new_lines)
         # Print a success message and exit the loop
         outcome = "SUCCESS"
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
         break
     return outcome
 
