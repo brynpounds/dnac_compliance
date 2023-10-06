@@ -6,22 +6,24 @@
   </head>
   <body>
     {% extends "template.html" %}
-    {% block content %}  
-    <h1>{{message}}</h1>
-    <p>
-    {% for item in reports.split("\n") %}
-      {% for thing in item.split(" ") %}
-        {% if ".pdf" in thing %}
-          <a href="/download/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
-        {% endif %}
+    {% block content %}
+
+      <h1>{{message}}</h1>
+      <p>
+      {% for item in reports.split("\n") %}
+        {% for thing in item.split(" ") %}
+          {% if ".pdf" in thing %}
+            <a href="/download/{% print(thing) %} " target="_blank">{% print(thing) %}</a></br>
+          {% endif %}
+        {% endfor %}
       {% endfor %}
-    {% endfor %}
-    </p>  
-    <script src="/static/serve.js" charset="utf-8"></script>
-  <form method="post">
-  <p> Click submit to run a new report </p>
-    <button type="submit">Create Report</button>
-  </form>
+      </p>  
+      <script src="/static/serve.js" charset="utf-8"></script>
+      <form method="post">
+        <p> Click submit to run a new report </p>
+        <button type="submit">Create Report</button>
+      </form>
+
   {% endblock %}
   </body>
 </html>
