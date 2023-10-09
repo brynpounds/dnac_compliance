@@ -26,6 +26,7 @@ import smtplib
 import ssl
 import getpass
 import zipfile
+import io
 import pytz
 from service_scheduler import *
 from configuration_template import TIME_ZONE, CONFIG_PATH, COMPLIANCE_STORE
@@ -230,7 +231,67 @@ def SMTP_setup(file_path):
         break
     return
 
-# This function sets the DNA Center connection details
+def SMTP_setup_app(file_path,email_address,email_password,smtp_server,smtp_port,smtp_flag,email_recipient):
+    # Define the path to the Python file to update
+    # Loop until valid input is given or cancel is entered
+    while True:
+        # Test the connection to the SMTP server
+        try:
+            context = ssl.create_default_context()
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls(context=context)
+                server.login(email_address, email_password)
+        except smtplib.SMTPAuthenticationError:
+            #Authentication failed. Please try again.
+            outcome = "InvalidAUTH"
+            break
+        except:
+            #Connection to SMTP server failed. Please try again.
+            outcome = "InvalidSMTP"
+            break
+        # Send a test email
+        try:
+            subject = "Test email from DNAC-COMPLIANCEMON"
+            body = "This is a test email sent from the DNAC Compliance APP."
+            message = f"Subject: {subject}\n\n{body}"
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls(context=context)
+                server.login(email_address, email_password)
+                server.sendmail(email_address, email_recipient, message)
+        except:
+            #Failed to send test email. Please try again.
+            outcome = "InvalidTEST"
+            break
+        # Print a success message and exit the loop
+        # Test email sent successfully!
+        # All tests pass, replace lines in the Python file
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+        new_lines = []
+        for line in lines:
+            if "SMTP_SERVER =" in line:
+                new_lines.append(f"SMTP_SERVER = '{smtp_server}'\n")
+            elif "SMTP_PORT =" in line:
+                new_lines.append(f"SMTP_PORT = '{smtp_port}'\n")
+            elif "SMTP_EMAIL =" in line:
+                new_lines.append(f"SMTP_EMAIL = '{email_address}'\n")
+            elif "SMTP_PASS =" in line:
+                new_lines.append(f"SMTP_PASS = '{email_password}'\n")
+            elif "NOTIFICATION_EMAIL =" in line:
+                new_lines.append(f"NOTIFICATION_EMAIL = '{email_recipient}'\n")
+            elif "SMTP_FLAG =" in line:
+                new_lines.append(f"SMTP_FLAG = '{smtp_flag}'\n")
+            else:
+                new_lines.append(line)
+        with open(file_path, "w") as f:
+            f.writelines(new_lines)
+        # Print a success message and exit the loop
+        #SMTP Server information updated successfully.
+        outcome = "SUCCESS"
+        break
+    return outcome
+
+# This function sets the DNA Center Time Zone details
 def TZONE_setup(file_path):
     # Define the path to the Python file to update
     #test_file_path = "./file.py"
@@ -286,6 +347,26 @@ def TZONE_setup(file_path):
             # Print a success message and exit the loop
             print("\nTime Zone information updated successfully.")
             break
+    return
+
+# This function sets the DNA Center Time Zone details
+def TZONE_setup_app(file_path,selected_timezone):
+    # Define the path to the Python file to update
+    #test_file_path = "./file.py"
+    # Loop until valid input is given or cancel is entered
+    while True:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+        new_lines = []
+        for line in lines:
+            if "TIME_ZONE =" in line:
+                new_lines.append(f"TIME_ZONE = '{selected_timezone}'\n")
+            else:
+                new_lines.append(line)
+        with open(file_path, "w") as f:
+            f.writelines(new_lines)
+        # Time Zone information updated successfully.")
+        break
     return
 
 def system_settings():
@@ -345,6 +426,7 @@ def PRIME_import(CONFIG_PATH, COMPLIANCE_STORE):
         else:
             print("\n\nThe Compliance Audits have already been extracted to the destination folder.")
             break
+    return
 
 #     ----------------------------- MAIN -----------------------------
 # code below for development purposes and testing only
