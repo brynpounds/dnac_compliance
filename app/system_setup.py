@@ -428,6 +428,24 @@ def PRIME_import(CONFIG_PATH, COMPLIANCE_STORE):
             break
     return
 
+def default_system(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE):
+    Report_Files = os.path.join(CONFIG_PATH, REPORT_STORE)
+    if not os.path.exists(Report_Files):
+        os.makedirs(Report_Files)
+    Json_Files = os.path.join(CONFIG_PATH, JSON_STORE)
+    if not os.path.exists(Json_Files):
+        os.makedirs(Json_Files)
+    Config_Files = os.path.join(CONFIG_PATH, CONFIG_STORE)
+    if not os.path.exists(Config_Files):
+        os.makedirs(Config_Files)
+    System_Files = os.path.join(CONFIG_PATH, SYSTEM_STORE)
+    if not os.path.exists(System_Files):
+        os.makedirs(System_Files)
+    shutil.copy("./config_template_dont_delete.py","./DNAC-CompMon-Data/System/config-backup.py")
+    shutil.copy("./config_template_dont_delete.py","./configuration_template.py")
+    #os.chdir(Config_Files)
+    return Config_Files, Report_Files, Json_Files
+
 #     ----------------------------- MAIN -----------------------------
 # code below for development purposes and testing only
 

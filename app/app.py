@@ -97,6 +97,20 @@ def home():
 def about():
     return render_template("about.html")
 
+@app.route("/system_resets", methods=('GET', 'POST'))
+#modified to use existing code
+def system_reset():
+    global CONFIG_PATH
+    global CONFIG_STORE
+    global REPORT_STORE
+    global JSON_STORE
+    global SYSTEM_STORE
+    if request.method == 'POST':
+        #reset system settings to default
+        default_system(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE)
+        return redirect(url_for('home')) 
+    return render_template("system_resets.html")
+
 @app.route("/configure_system", methods=('GET', 'POST'))
 #modified to use existing code
 def configure_system():
