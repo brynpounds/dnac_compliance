@@ -4,9 +4,12 @@ import requests
 import time
 import subprocess
 import shutil
+import pytz
+import zipfile
+import io
 from subprocess import PIPE
 from dotenv import load_dotenv
-from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER
+from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, SMTP_EMAIL, SMTP_PASS, SMTP_SERVER, SMTP_PORT, SMTP_FLAG, NOTIFICATION_EMAIL
 from compliance_mon import *
 from difference_engine import *
 from system_setup import *
@@ -79,7 +82,10 @@ except Exception as e:
     print("Modules are Missing : {} ".format(e))
     
 messages=["howdy"]
-    
+
+os_setup()
+data_library(CONFIG_PATH,CONFIG_STORE,REPORT_STORE,JSON_STORE,SYSTEM_STORE)
+
 @app.route("/")
 def home():
     my_var = "Welcome to DNA Center Compliance Lite"
@@ -114,6 +120,83 @@ def configure_system():
             DNAC_setup_app(PATH,DNAC_IP,DNAC_USER,DNAC_PASS)
             return redirect(url_for('status'))    
     return render_template("configure_system.html",ip_address=DNAC_IP,username=DNAC_USER,password=DNAC_PASS )
+
+@app.route("/configure_email", methods=('GET', 'POST'))
+#modified to use existing code
+def configure_email():
+    global SMTP_EMAIL
+    global SMTP_PASS
+    global SMTP_SERVER
+    global SMTP_PORT
+    global SMTP_FLAG
+    global NOTIFICATION_EMAIL
+    if request.method == 'POST':
+        SMTP_EMAIL = request.form['email_address']
+        SMTP_PASS = request.form['email_password']
+        SMTP_SERVER = request.form['smtp_server']
+        SMTP_PORT = request.form['smtp_port']
+        NOTIFICATION_EMAIL = request.form['email_recipient']
+        # Define the path to the Python file to update
+        PATH = "./configuration_template.py"
+        if not SMTP_EMAIL:
+            flash('Email Address is required!')
+        elif not SMTP_PASS:
+            flash('Email Password is required!')        
+        elif not SMTP_SERVER:
+            flash('SMTP Server is required!')
+        elif not SMTP_PORT:
+            flash('SMTP Port is required!')
+        elif not SMTP_PORT:
+            flash('SMTP Port is required!')
+        elif not NOTIFICATION_EMAIL:
+            flash('Email Recipient is required!')
+        else:
+            SMTP_FLAG = True
+            SMTP_setup_app(PATH,SMTP_EMAIL,SMTP_PASS,SMTP_SERVER,SMTP_PORT,SMTP_FLAG,NOTIFICATION_EMAIL)
+            return redirect(url_for('status'))    
+    return render_template("configure_email.html",email_address=SMTP_EMAIL,email_password=SMTP_PASS,smtp_server=SMTP_SERVER,smtp_port=SMTP_PORT,email_recipient=NOTIFICATION_EMAIL )
+
+@app.route("/configure_time", methods=('GET', 'POST'))
+#modified to use existing code
+def configure_tzone():
+    global TIME_ZONE
+    if request.method == 'POST':
+        TIME_ZONE = request.form['time_zone']
+        # Define the path to the Python file to update
+        PATH = "./configuration_template.py"
+        if not TIME_ZONE:
+            flash('Time Zone is required!')
+        else:
+            TZONE_setup_app(PATH,TIME_ZONE)
+    time_zones = pytz.all_timezones
+    return render_template("configure_time.html",time_zone=TIME_ZONE,time_zones=time_zones)
+
+@app.route("/configure_rules", methods=('GET', 'POST'))
+#modified to use existing code
+def configure_rules():
+    if request.method == 'POST':
+        # Get the uploaded file
+        uploaded_file = request.files['file']
+        compliance_files = os.path.join(CONFIG_PATH, COMPLIANCE_STORE)
+        folder_name = os.path.splitext(uploaded_file.filename)[0]
+        uploaded_path = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, folder_name)
+        #PRIME_import_app(CONFIG_PATH, COMPLIANCE_STORE, UPLOADED_FILE) 
+        # Create a folder to extract the contents to
+        if uploaded_file.filename.endswith('.zip'):
+            if not os.path.exists(compliance_files):
+                os.makedirs(compliance_files)        
+            if not os.path.exists(uploaded_path):
+                # Extract the contents of the zip file to the folder
+                os.mkdir(uploaded_path)        
+                with zipfile.ZipFile(io.BytesIO(uploaded_file.read())) as zip_ref:
+                    zip_ref.extractall(compliance_files)
+                outcome = "SUCCESS"
+                return render_template("configure_rules.html")
+            else:
+                outcome = "FAILURE"
+        else:
+            outcome = "FAILURE"
+    return render_template("configure_rules.html")
 
 @app.route("/report", methods=('GET', 'POST'))
 #modified to use existing code

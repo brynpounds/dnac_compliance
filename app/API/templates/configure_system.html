@@ -2,38 +2,36 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>DNA Center Compliance Lite - Configuration</title>
+    <title>Compliance Lite - DNA Center Configuration</title>
   </head>
   <body>
     {% extends "template.html" %}
     {% block content %}
 
-      <h1>{% block title %} Please enter DNA Center settings {% endblock %}</h1>
+      <h1 style="margin-left: 40px">{% block title %} DNA Center Settings {% endblock %}</h1>
       <div align="left" class="container">
         <strong><nav>
         <font size="3px">
-        <form method="post">
-            <label for="title">DNA Center IP Address (IP only)</label>
-            <br>
-            <input type="text" name="ip_address"
+        <form method="post" style="margin-left: 50px">
+            <label for="title">DNA Center Connectivity (IPv4 only)</label>
+            <br><p></p>
+            <label for="ip_address">IP Address: </label>
+            <input type="ip_address" name="ip_address"
                    placeholder="{{ ip_address }}"
                    value="{{ request.form['ip_address'] }}"></input>
             <br><p></p>
-            <label for="title">DNA Center Username</label>
-            <br>
-            <input type="text" name="username"
+            <label for="username">Username: </label>
+            <input type="username" name="username"
                    placeholder="{{ username }}"
                    value="{{ request.form['username'] }}"></input>
             <br><p></p>
-            <label for="title">DNA Center Password</label>
-            <br>
-            <input type="text" name="password"
+            <label for="password">Password: </label>
+            <input type="password" name="password"
                    placeholder="{{ password }}"
                    value="{{ request.form['password'] }}">
             </input>
             <br><p></p>
-            <label for="content">Submit</label>
-            <button type="submit">Submit</button>
+            <button type="submit">Save</button>
         </form>
         </font>
         </nav></strong>
