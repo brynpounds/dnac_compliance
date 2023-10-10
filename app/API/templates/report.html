@@ -8,7 +8,8 @@
     {% extends "template.html" %}
     {% block content %}
 
-      <h1 style="margin-left: 40px">{{message}}</h1>
+      <h1 style="margin-left: 40px">Compliance Lite - Reports</h1>
+      <p style="margin-left: 50px"> The Reports presented below have hyperlinks which enable a direct download. </p>
       <p style="margin-left: 50px">
       {% for item in reports.split("\n") %}
         {% for thing in item.split(" ") %}

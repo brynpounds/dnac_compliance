@@ -33,7 +33,7 @@ import dnac_apis
 
 from prime_compliance_dictionary import all_files_into_dict
 from difference_engine import compliance_run
-from service_email import system_notification
+from service_email import *
 
 from requests.auth import HTTPBasicAuth  # for Basic Auth
 from urllib3.exceptions import InsecureRequestWarning  # for insecure https warnings
@@ -153,7 +153,7 @@ def comp_main():
     os_setup()
     AUDIT_DATABASE = {}
     COMPLIANCE_DIRECTORY = "IOSXE"
-    COMP_CHECKS = os.path.join(CONFIG_PATH, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY)
+    COMP_CHECKS = os.path.join(APP_DIRECTORY, COMPLIANCE_STORE, COMPLIANCE_DIRECTORY)
     AUDIT_DATABASE = all_files_into_dict(COMP_CHECKS)
     #print(f"First the Audit Rules from Prime loaded for processing against configs\n\n",AUDIT_DATABASE)
     #pause()   
@@ -271,11 +271,10 @@ def comp_main():
             #Device: New device discovered
     #pause()
     report = compliance_run("./", AUDIT_DATABASE, Report_Files, Json_Files)
-    if SMTP_FLAG == True:
-        system_notification(report)
+    if SMTP_FLAG == "True":
+        system_notification_app("/app/DNAC-CompMon-Data/Reports/")
         outcome = "SUCCESS-EMAIL"
     else:
-        SMTP_FLAG == False
         outcome = "SUCCESS-NOEMAIL"
         #Unable to send Notification Email - as SMTP settings are not set
     return outcome

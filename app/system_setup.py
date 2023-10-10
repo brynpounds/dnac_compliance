@@ -288,6 +288,7 @@ def SMTP_setup_app(file_path,email_address,email_password,smtp_server,smtp_port,
         # Print a success message and exit the loop
         #SMTP Server information updated successfully.
         outcome = "SUCCESS"
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
         break
     return outcome
 
@@ -366,6 +367,8 @@ def TZONE_setup_app(file_path,selected_timezone):
         with open(file_path, "w") as f:
             f.writelines(new_lines)
         # Time Zone information updated successfully.")
+        outcome = "SUCCESS"
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
         break
     return
 

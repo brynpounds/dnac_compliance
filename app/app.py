@@ -123,7 +123,7 @@ def configure_system():
         DNAC_USER = request.form['username']
         DNAC_PASS = request.form['password']
         # Define the path to the Python file to update
-        PATH = "./configuration_template.py"
+        PATH = "/app/configuration_template.py"
         if not DNAC_IP:
             flash('IP Address is required!')
         elif not DNAC_USER:
@@ -151,7 +151,7 @@ def configure_email():
         SMTP_PORT = request.form['smtp_port']
         NOTIFICATION_EMAIL = request.form['email_recipient']
         # Define the path to the Python file to update
-        PATH = "./configuration_template.py"
+        PATH = "/app/configuration_template.py"
         if not SMTP_EMAIL:
             flash('Email Address is required!')
         elif not SMTP_PASS:
@@ -177,7 +177,7 @@ def configure_tzone():
     if request.method == 'POST':
         TIME_ZONE = request.form['time_zone']
         # Define the path to the Python file to update
-        PATH = "./configuration_template.py"
+        PATH = "/app/configuration_template.py"
         if not TIME_ZONE:
             flash('Time Zone is required!')
         else:
