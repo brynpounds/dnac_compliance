@@ -241,8 +241,8 @@ def xml_file_reader(file):
 # Process multiple files
 def compliance_run(directory, data, report_files, json_files):
     # Loop through each file in the directory
-    report_path = "../../" + report_files
-    json_path = "../../" + json_files
+    report_path = report_files
+    json_path = json_files
     compliance_data = []
     # Get the current date time in UTC timezone
     now_utc = datetime.datetime.now(pytz.UTC)
