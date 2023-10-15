@@ -1,2 +1,0 @@
-2023-10-11 22:09:53.694 DEBUG connectionpool - _new_conn: Starting new HTTP connection (1): localhost:8080
-2023-10-11 22:09:53.709 DEBUG connectionpool - _make_request: http://localhost:8080 "GET /health_check HTTP/1.1" 200 35

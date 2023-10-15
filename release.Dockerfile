@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
 
 RUN apt-get install openssl && apt install -y net-tools && apt-get install -y iputils-ping
-RUN apt-get install -y cron && apt-get install -y nano
+RUN apt-get install -y cron
 
 EXPOSE 8080
 
