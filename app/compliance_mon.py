@@ -76,9 +76,9 @@ def data_library(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STO
     System_Files = os.path.join(CONFIG_PATH, SYSTEM_STORE)
     if not os.path.exists(System_Files):
         os.makedirs(System_Files)
-        shutil.copy("/app/configuration_template.py","/app/DNAC-CompMon-Data/System/config-backup.py")
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
     else:
-        shutil.copy("/app/DNAC-CompMon-Data/System/config-backup.py","/app/configuration_template.py")
+        shutil.copy("./DNAC-CompMon-Data/System/config-backup.py","./configuration_template.py")
     #os.chdir(Config_Files)
     return Config_Files, Report_Files, Json_Files
 
