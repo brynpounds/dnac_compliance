@@ -98,6 +98,7 @@ def DNAC_setup(file_path):
         # Print a success message and exit the loop
         print("Server information updated successfully.")
         outcome = "SUCCESS"
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
         break
     return outcome
 
@@ -159,7 +160,7 @@ def DNAC_setup_app(file_path,dnac_ip,dnac_usr,dnac_pwd):
             f.writelines(new_lines)
         # Print a success message and exit the loop
         outcome = "SUCCESS"
-        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
+        shutil.copy("/app/configuration_template.py","/app/DNAC-CompMon-Data/System/config-backup.py")
         break
     return outcome
 
@@ -228,6 +229,8 @@ def SMTP_setup(file_path):
             f.writelines(new_lines)
         # Print a success message and exit the loop
         print("\nSMTP Server information updated successfully.")
+        outcome = "SUCCESS"
+        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
         break
     return
 
@@ -288,7 +291,7 @@ def SMTP_setup_app(file_path,email_address,email_password,smtp_server,smtp_port,
         # Print a success message and exit the loop
         #SMTP Server information updated successfully.
         outcome = "SUCCESS"
-        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
+        shutil.copy("/app/configuration_template.py","/app/DNAC-CompMon-Data/System/config-backup.py")
         break
     return outcome
 
@@ -347,6 +350,8 @@ def TZONE_setup(file_path):
                 f.writelines(new_lines)
             # Print a success message and exit the loop
             print("\nTime Zone information updated successfully.")
+            outcome = "SUCCESS"
+            shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
             break
     return
 
@@ -368,7 +373,7 @@ def TZONE_setup_app(file_path,selected_timezone):
             f.writelines(new_lines)
         # Time Zone information updated successfully.")
         outcome = "SUCCESS"
-        shutil.copy("./configuration_template.py","./DNAC-CompMon-Data/System/config-backup.py")
+        shutil.copy("/app/configuration_template.py","/app/DNAC-CompMon-Data/System/config-backup.py")
         break
     return
 
@@ -446,6 +451,24 @@ def default_system(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_S
         os.makedirs(System_Files)
     shutil.copy("./config_template_dont_delete.py","./DNAC-CompMon-Data/System/config-backup.py")
     shutil.copy("./config_template_dont_delete.py","./configuration_template.py")
+    #os.chdir(Config_Files)
+    return Config_Files, Report_Files, Json_Files
+
+def default_system_app(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE):
+    Report_Files = os.path.join(CONFIG_PATH, REPORT_STORE)
+    if not os.path.exists(Report_Files):
+        os.makedirs(Report_Files)
+    Json_Files = os.path.join(CONFIG_PATH, JSON_STORE)
+    if not os.path.exists(Json_Files):
+        os.makedirs(Json_Files)
+    Config_Files = os.path.join(CONFIG_PATH, CONFIG_STORE)
+    if not os.path.exists(Config_Files):
+        os.makedirs(Config_Files)
+    System_Files = os.path.join(CONFIG_PATH, SYSTEM_STORE)
+    if not os.path.exists(System_Files):
+        os.makedirs(System_Files)
+    shutil.copy("/app/config_template_dont_delete.py","/app/DNAC-CompMon-Data/System/config-backup.py")
+    shutil.copy("/app/config_template_dont_delete.py","/app/configuration_template.py")
     #os.chdir(Config_Files)
     return Config_Files, Report_Files, Json_Files
 

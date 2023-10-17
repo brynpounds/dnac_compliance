@@ -13,6 +13,7 @@ from configuration_template import DNAC_URL, DNAC_PASS, DNAC_USER, SMTP_EMAIL, S
 from compliance_mon import *
 from difference_engine import *
 from system_setup import *
+from version import *
 load_dotenv()
 
 try:
@@ -91,11 +92,11 @@ def home():
     my_var = "Welcome to DNA Center Compliance Lite"
     result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports", "/dev/null"], stdout=PIPE, stderr=PIPE)
     contents = result.stdout.decode('utf8')
-    return render_template("home.html", message = contents.split("total")[1])
+    return render_template("home.html", message = contents.split("total")[1], version=version)
 
 @app.route("/about")
 def about():
-    return render_template("about.html")
+    return render_template("about.html", version=version)
 
 @app.route("/system_resets", methods=('GET', 'POST'))
 #modified to use existing code
@@ -107,9 +108,9 @@ def system_reset():
     global SYSTEM_STORE
     if request.method == 'POST':
         #reset system settings to default
-        default_system(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE)
+        default_system_app(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE)
         return redirect(url_for('home')) 
-    return render_template("system_resets.html")
+    return render_template("system_resets.html", version=version)
 
 @app.route("/configure_system", methods=('GET', 'POST'))
 #modified to use existing code
@@ -133,7 +134,7 @@ def configure_system():
         else:
             DNAC_setup_app(PATH,DNAC_IP,DNAC_USER,DNAC_PASS)
             return redirect(url_for('status'))    
-    return render_template("configure_system.html",ip_address=DNAC_IP,username=DNAC_USER,password=DNAC_PASS )
+    return render_template("configure_system.html",ip_address=DNAC_IP,username=DNAC_USER,password=DNAC_PASS, version=version)
 
 @app.route("/configure_email", methods=('GET', 'POST'))
 #modified to use existing code
@@ -168,7 +169,7 @@ def configure_email():
             SMTP_FLAG = True
             SMTP_setup_app(PATH,SMTP_EMAIL,SMTP_PASS,SMTP_SERVER,SMTP_PORT,SMTP_FLAG,NOTIFICATION_EMAIL)
             return redirect(url_for('status'))    
-    return render_template("configure_email.html",email_address=SMTP_EMAIL,email_password=SMTP_PASS,smtp_server=SMTP_SERVER,smtp_port=SMTP_PORT,email_recipient=NOTIFICATION_EMAIL )
+    return render_template("configure_email.html",email_address=SMTP_EMAIL,email_password=SMTP_PASS,smtp_server=SMTP_SERVER,smtp_port=SMTP_PORT,email_recipient=NOTIFICATION_EMAIL, version=version)
 
 @app.route("/configure_time", methods=('GET', 'POST'))
 #modified to use existing code
@@ -183,7 +184,7 @@ def configure_tzone():
         else:
             TZONE_setup_app(PATH,TIME_ZONE)
     time_zones = pytz.all_timezones
-    return render_template("configure_time.html",time_zone=TIME_ZONE,time_zones=time_zones)
+    return render_template("configure_time.html",time_zone=TIME_ZONE,time_zones=time_zones, version=version)
 
 @app.route("/configure_rules", methods=('GET', 'POST'))
 #modified to use existing code
@@ -210,7 +211,7 @@ def configure_rules():
                 outcome = "FAILURE"
         else:
             outcome = "FAILURE"
-    return render_template("configure_rules.html")
+    return render_template("configure_rules.html", version=version)
 
 @app.route("/report", methods=('GET', 'POST'))
 #modified to use existing code
@@ -221,7 +222,7 @@ def serve_report():
     message = "Reports..."
     result = subprocess.run(["ls", "-l", "/app/DNAC-CompMon-Data/Reports/", "/dev/null"], stdout=PIPE, stderr=PIPE)
     contents = result.stdout.decode('utf8')
-    return render_template('report.html', message=message, reports=contents.split("total")[1])
+    return render_template('report.html', message=message, reports=contents.split("total")[1], version=version)
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
@@ -243,7 +244,7 @@ def status():
     response = requests.get(url)
     our_response_content = response.content.decode('utf8')
     proper_json_response = json.loads(our_response_content)
-    return render_template("status.html", testing=proper_json_response, DNAC_URL=DNAC_URL, DNAC_USER=DNAC_USER, messages=messages, contents=contents)
+    return render_template("status.html", testing=proper_json_response, DNAC_URL=DNAC_URL, DNAC_USER=DNAC_USER, messages=messages, contents=contents, version=version)
 
 @app.route("/weather")
 def weather():
@@ -262,7 +263,7 @@ def weather():
     #my_response = requests.get(url)
     our_response_content = response.content.decode('utf8')
     proper_json_response = json.loads(our_response_content)
-    return render_template("weather.html", message="HOWDY", testing=proper_json_response)
+    return render_template("weather.html", message="HOWDY", testing=proper_json_response, version=version)
 
 api.add_resource(HealthController, '/health_check')
 docs.register(HealthController)
