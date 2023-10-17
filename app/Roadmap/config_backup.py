@@ -1,6 +1,6 @@
 ####################################################################################
 # project: DNAC-ComplianceMon
-# module: config.py
+# module: configuration_template.py
 # author: kebaldwi@cisco.com
 # use case: Simple Check of XML audit files against configuration
 # developers:
@@ -15,8 +15,8 @@ import socket
 # DNAC username and password, server info and file locations
 
 # Update this section with the DNA Center server info and user information
-DNAC_IP = '10.0.0.1'
-DNAC_USER = 'demouser'
+DNAC_IP = '10.10.10.10'
+DNAC_USER = 'user'
 DNAC_PASS = 'C1sco12345'
 DNAC_URL = 'https://' + DNAC_IP
 DNAC_FQDN = socket.getfqdn(DNAC_IP)
@@ -33,7 +33,7 @@ NOTIFICATION_EMAIL = "receiver@gmail.com"
 SMTP_FLAG = False
 
 # Update this section for the Time Zone
-TIME_ZONE = 'America/Indiana/Indianapolis'
+TIME_ZONE = 'US/Eastern'
 
 # File location to be used for configurations
 CONFIG_PATH = f"./"
@@ -41,3 +41,5 @@ CONFIG_STORE = f"DNAC-CompMon-Data/Configs/"
 JSON_STORE = f"DNAC-CompMon-Data/JSONdata/"
 REPORT_STORE = f"DNAC-CompMon-Data/Reports/"
 COMPLIANCE_STORE = f"PrimeComplianceChecks/"
+SYSTEM_STORE = f"DNAC-CompMon-Data/System/"
+APP_DIRECTORY = f"/app/"
