@@ -109,6 +109,12 @@ def system_reset():
     if request.method == 'POST':
         #reset system settings to default
         default_system_app(CONFIG_PATH, CONFIG_STORE, REPORT_STORE, JSON_STORE, SYSTEM_STORE)
+        # Execute the shell script to restart the Flask application
+        # Add a two-second pause
+        time.sleep(2)
+        subprocess.run(['bash', 'restart_app.sh'])
+        # Add a two-second pause
+        time.sleep(2)
         return redirect(url_for('home')) 
     return render_template("system_resets.html", version=version)
 
@@ -133,6 +139,11 @@ def configure_system():
             flash('Password is required!')
         else:
             DNAC_setup_app(PATH,DNAC_IP,DNAC_USER,DNAC_PASS)
+            # Add a two-second pause
+            time.sleep(2)
+            subprocess.run(['bash', 'restart_app.sh'])
+            # Add a two-second pause
+            time.sleep(2)
             return redirect(url_for('status'))    
     return render_template("configure_system.html",ip_address=DNAC_IP,username=DNAC_USER,password=DNAC_PASS, version=version)
 
@@ -168,6 +179,11 @@ def configure_email():
         else:
             SMTP_FLAG = True
             SMTP_setup_app(PATH,SMTP_EMAIL,SMTP_PASS,SMTP_SERVER,SMTP_PORT,SMTP_FLAG,NOTIFICATION_EMAIL)
+            # Add a two-second pause
+            time.sleep(2)
+            subprocess.run(['bash', 'restart_app.sh'])
+            # Add a two-second pause
+            time.sleep(2)
             return redirect(url_for('status'))    
     return render_template("configure_email.html",email_address=SMTP_EMAIL,email_password=SMTP_PASS,smtp_server=SMTP_SERVER,smtp_port=SMTP_PORT,email_recipient=NOTIFICATION_EMAIL, version=version)
 
@@ -183,6 +199,12 @@ def configure_tzone():
             flash('Time Zone is required!')
         else:
             TZONE_setup_app(PATH,TIME_ZONE)
+            # Add a two-second pause
+            time.sleep(2)
+            subprocess.run(['bash', 'restart_app.sh'])
+            # Add a two-second pause
+            time.sleep(2)
+            return redirect(url_for('status'))    
     time_zones = pytz.all_timezones
     return render_template("configure_time.html",time_zone=TIME_ZONE,time_zones=time_zones, version=version)
 
