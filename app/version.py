@@ -1,2 +1,2 @@
 # ComplianceLite Version Control
-version = "v1.0.3"
+version = "v1.0.4"
